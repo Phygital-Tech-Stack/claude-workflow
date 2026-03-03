@@ -1,0 +1,57 @@
+name: Drift Check
+on:
+  schedule:
+    - cron: '0 8 * * 1'  # Weekly Monday 8am UTC
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  load-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.read.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: echo "projects=$(jq -c '.projects' projects.json)" >> $GITHUB_OUTPUT
+
+  check-drift:
+    runs-on: ubuntu-latest
+    needs: load-projects
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.load-projects.outputs.projects) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.project.repo }}
+          path: project
+          token: ${{ secrets.WORKFLOW_PAT }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install pyyaml
+      - name: Run drift check
+        id: drift
+        run: |
+          result=$(./tools/diff.sh --project project --json 2>&1) || true
+          echo "report<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Open issue if drifted
+        if: contains(steps.drift.outputs.report, 'BEHIND') || contains(steps.drift.outputs.report, 'DIVERGED')
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.WORKFLOW_PAT }}
+          script: |
+            const [owner, repo] = '${{ matrix.project.repo }}'.split('/');
+            await github.rest.issues.create({
+              owner, repo,
+              title: 'Workflow drift detected against claude-workflow master',
+              body: '```\n${{ steps.drift.outputs.report }}\n```\n\nRun `/sync-workflow --update` to sync.',
+              labels: ['workflow-drift']
+            });

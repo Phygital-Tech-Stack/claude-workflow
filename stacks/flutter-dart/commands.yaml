@@ -1,0 +1,30 @@
+commands:
+  FORMAT_COMMAND: "dart format"
+  ANALYZE_COMMAND: "flutter analyze lib/ --no-fatal-infos && dart analyze phast_backend/lib/"
+  TEST_COMMAND: "flutter test && cd phast_backend && dart test"
+  WATCH_COMMAND: "flutter test --watch"
+  TEST_FILE_CONVENTION: "test/<path>/<name>_test.dart"
+  BUILD_COMMAND: "flutter build"
+
+classify_categories:
+  - Frontend (lib/)
+  - Backend (phast_backend/)
+  - Packages (packages/)
+  - Tests (test/)
+  - Config (pubspec.yaml, analysis_options.yaml)
+  - Docs (*.md)
+
+critical_files:
+  - drift/tables.dart
+  - pubspec.yaml
+  - app_router.dart
+  - analysis_options.yaml
+  - /migrations/
+
+code_extensions: ".dart"
+exclude_generated: ".g.dart,.freezed.dart"
+
+auto_quick_patterns:
+  - "*_test.dart"
+  - "*.md"
+  - "*.json"

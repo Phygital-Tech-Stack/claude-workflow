@@ -42,7 +42,7 @@ def find_promote_candidates(drift_data: dict) -> list[dict]:
 def generate_branch_name(project_repo: str) -> str:
     """Generate a branch name like promote/erp/a1b2c3d4."""
     project_name = project_repo.split("/")[-1].lower()
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     short_hash = hashlib.sha256(timestamp.encode()).hexdigest()[:8]
     return f"promote/{project_name}/{short_hash}"
 
@@ -85,7 +85,7 @@ def check_existing_pr(master_repo: str, project_repo: str) -> bool:
             "gh", "pr", "list",
             "--repo", master_repo,
             "--state", "open",
-            "--search", f"Auto-Promote LOCAL-EDIT {project_name} in:title",
+            "--search", f"promote: LOCAL-EDIT changes from {project_name} in:title",
             "--json", "number",
         ],
         capture_output=True,
@@ -168,6 +168,7 @@ def create_promote_pr(
             "--body", body,
             "--label", "promote-candidate",
             "--head", branch,
+            "--base", "main",
         ],
         capture_output=True,
         text=True,

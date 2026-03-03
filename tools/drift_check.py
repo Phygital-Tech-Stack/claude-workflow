@@ -12,6 +12,40 @@ def sha256(path: str) -> str:
         return f"sha256:{hashlib.sha256(f.read()).hexdigest()}"
 
 
+def sha256_resolved(path: str, commands: dict[str, str]) -> str:
+    """Hash a file after resolving {{PLACEHOLDER}} values."""
+    with open(path, "r") as f:
+        content = f.read()
+    for key, val in commands.items():
+        content = content.replace("{{" + key + "}}", val)
+    return f"sha256:{hashlib.sha256(content.encode()).hexdigest()}"
+
+
+def load_commands(master_dir: str, stacks: list[str], version: str) -> dict[str, str]:
+    """Load placeholder values from stack commands.yaml files."""
+    try:
+        import yaml
+    except ImportError:
+        return {}
+
+    commands: dict[str, str] = {}
+    for stack in stacks:
+        cmd_path = os.path.join(master_dir, "stacks", stack.strip(), "commands.yaml")
+        if os.path.exists(cmd_path):
+            with open(cmd_path) as f:
+                data = yaml.safe_load(f) or {}
+            for key, val in data.get("commands", {}).items():
+                commands[key] = str(val)
+            for key in ("classify_categories", "critical_files", "auto_quick_patterns"):
+                if key in data:
+                    val = data[key]
+                    if isinstance(val, list):
+                        commands[key.upper()] = ", ".join(str(v) for v in val)
+    commands["VERSION"] = version
+    commands["STACKS"] = ", ".join(stacks)
+    return commands
+
+
 def find_master_source(master_dir: str, rel_path: str, stacks: list[str]) -> str | None:
     """Find where a file lives in the master repo (base or stack).
 
@@ -76,6 +110,8 @@ def main():
             pass
 
     stacks = lock.get("stacks", [])
+    version = lock.get("version", "0.0.0")
+    commands = load_commands(args.master, stacks, version)
     results = []
 
     for rel_path, lock_hash in lock.get("managed", {}).items():
@@ -98,7 +134,11 @@ def main():
             continue
 
         local_hash = sha256(local_path)
-        master_hash = sha256(master_path) if master_exists else None
+        # For .md files, resolve placeholders before hashing master source
+        if master_exists and master_path.endswith(".md") and commands:
+            master_hash = sha256_resolved(master_path, commands)
+        else:
+            master_hash = sha256(master_path) if master_exists else None
 
         local_matches_lock = local_hash == lock_hash
         lock_matches_master = lock_hash == master_hash if master_hash else True

@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Workflow &mdash; How It Works</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181b23;
+    --surface2: #1e222d;
+    --border: #2a2f3d;
+    --text: #c9cdd8;
+    --text-dim: #717a8e;
+    --heading: #e4e7ef;
+    --accent: #6c8cff;
+    --accent-dim: #3b5bdb;
+    --green: #3dd68c;
+    --green-dim: #1a3d2e;
+    --yellow: #f0c040;
+    --yellow-dim: #3a3020;
+    --red: #f06060;
+    --red-dim: #3a2020;
+    --orange: #e89040;
+    --purple: #b080f0;
+    --cyan: #50c8e8;
+    --radius: 8px;
+    --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  /* --- HERO --- */
+  .hero {
+    background: linear-gradient(135deg, #12141c 0%, #1a1e2e 50%, #12141c 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 24px 60px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--heading);
+    letter-spacing: -0.03em;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .version-badge {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 4px 14px;
+    font-size: 0.8rem;
+    font-family: var(--mono);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--accent);
+  }
+
+  /* --- CONTAINER --- */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* --- SECTIONS --- */
+  section {
+    padding: 60px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  section:last-child { border-bottom: none; }
+
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--heading);
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  h2 .num {
+    color: var(--accent-dim);
+    font-family: var(--mono);
+    font-size: 0.85em;
+    margin-right: 6px;
+  }
+  .section-sub {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--heading);
+    margin: 28px 0 10px;
+  }
+
+  p { margin-bottom: 14px; }
+
+  /* --- CARDS --- */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--heading);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .card p {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    margin-bottom: 0;
+  }
+
+  /* --- CODE --- */
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    margin: 16px 0;
+    color: var(--text);
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+
+  .code-label {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    background: var(--surface2);
+    padding: 2px 10px;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: -1px;
+    position: relative;
+    top: 1px;
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+  .code-label + pre { border-top-left-radius: 0; margin-top: 0; }
+
+  /* syntax colors */
+  .kw { color: var(--purple); }
+  .str { color: var(--green); }
+  .comment { color: var(--text-dim); font-style: italic; }
+  .fn { color: var(--cyan); }
+  .num { color: var(--orange); }
+  .key { color: var(--accent); }
+
+  /* --- FLOW DIAGRAMS --- */
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 28px 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .flow-step {
+    flex: 1;
+    min-width: 150px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 16px;
+    text-align: center;
+    position: relative;
+  }
+  .flow-step:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+  .flow-step:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid var(--border);
+    z-index: 1;
+  }
+  .flow-step .step-num {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .flow-step .step-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--heading);
+    margin-bottom: 4px;
+  }
+  .flow-step .step-detail {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  /* --- TABLE --- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.88rem;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--surface);
+    color: var(--heading);
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  tr:hover td { background: var(--surface); }
+
+  .status {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .status-current  { background: var(--green-dim); color: var(--green); }
+  .status-behind   { background: var(--yellow-dim); color: var(--yellow); }
+  .status-diverged { background: var(--red-dim); color: var(--red); }
+  .status-local    { background: rgba(108,140,255,0.12); color: var(--accent); }
+  .status-missing  { background: var(--red-dim); color: var(--red); }
+
+  /* --- TREE --- */
+  .tree {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    line-height: 1.8;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 16px 0;
+    overflow-x: auto;
+  }
+  .tree .dir { color: var(--accent); font-weight: 600; }
+  .tree .file { color: var(--text); }
+  .tree .desc { color: var(--text-dim); }
+
+  /* --- LAYER DIAGRAM --- */
+  .layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 24px 0;
+  }
+  .layer {
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .layer:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+  .layer:last-child  { border-radius: 0 0 var(--radius) var(--radius); }
+  .layer:not(:first-child) { border-top: none; }
+  .layer-num {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    width: 24px;
+    flex-shrink: 0;
+  }
+  .layer-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--heading);
+    min-width: 160px;
+  }
+  .layer-desc {
+    font-size: 0.84rem;
+    color: var(--text-dim);
+  }
+
+  /* --- TABS --- */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .tab {
+    padding: 10px 20px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .tab-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    padding: 20px;
+  }
+
+  /* --- CALLOUT --- */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    padding: 14px 18px;
+    margin: 20px 0;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 0.9rem;
+  }
+  .callout.warn {
+    border-left-color: var(--yellow);
+  }
+  .callout strong {
+    color: var(--heading);
+  }
+
+  /* --- CHIP --- */
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 4px;
+  }
+  .chip-ts   { background: #1a2a3d; color: #60a0e0; }
+  .chip-py   { background: #2a2a1a; color: #e0c040; }
+  .chip-dart { background: #1a2a2a; color: #40c0c0; }
+  .chip-cs   { background: #2a1a2a; color: #c080e0; }
+
+  /* --- STICKY NAV --- */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,17,23,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+  .nav-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .nav a {
+    padding: 12px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .nav a:hover { color: var(--text); }
+  .nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 2rem; }
+    .flow { flex-direction: column; }
+    .flow-step { border-radius: 0 !important; }
+    .flow-step:first-child { border-radius: var(--radius) var(--radius) 0 0 !important; }
+    .flow-step:last-child { border-radius: 0 0 var(--radius) var(--radius) !important; }
+    .flow-step:not(:last-child)::after { display: none; }
+    .card-grid { grid-template-columns: 1fr; }
+    section { padding: 40px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <h1><span>claude-workflow</span></h1>
+  <p>A master repository that keeps AI development workflows synchronized across multiple projects. One source of truth for hooks, guards, skills, agents, and blueprints.</p>
+  <div class="version-badge">v1.0.0</div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#lifecycle">Lifecycle</a>
+    <a href="#stacks">Stacks</a>
+    <a href="#placeholders">Placeholders</a>
+    <a href="#lock">Lock File</a>
+    <a href="#drift">Drift Detection</a>
+    <a href="#formatter-fix">Formatter Fix</a>
+    <a href="#ci">CI/CD</a>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- 1. OVERVIEW -->
+<section id="overview">
+  <h2><span class="num">01</span> What Problem Does This Solve?</h2>
+  <p class="section-sub">Managing consistent AI workflows across a growing portfolio of projects.</p>
+  <p>
+    When multiple projects use Claude Code, each needs hooks, guards, skills, agents, and configuration.
+    Without a central system, these diverge quickly &mdash; a guard fix in one project never reaches the others,
+    skill improvements stay local, and onboarding new projects means copy-pasting from the most recent one.
+  </p>
+  <p>
+    <strong>claude-workflow</strong> solves this by acting as a canonical master repo. Projects initialize from it,
+    pin to a version, and receive drift detection when the master evolves. Each project can exclude files it owns
+    locally while staying in sync on everything else.
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:var(--green-dim);color:var(--green);">1</div> Centralized</div>
+      <p>Single source of truth for all workflow configuration. Fix a guard once, roll it out everywhere.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:var(--yellow-dim);color:var(--yellow);">2</div> Versioned</div>
+      <p>Semantic versioning with version pinning. Projects upgrade deliberately, never accidentally.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(108,140,255,0.12);color:var(--accent);">3</div> Stack-Aware</div>
+      <p>Technology-specific overlays. TypeScript projects get different guards than Python or Flutter.</p>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(176,128,240,0.12);color:var(--purple);">4</div> Customizable</div>
+      <p>Projects exclude files they own and merge additional settings without breaking sync.</p>
+    </div>
+  </div>
+
+  <h3>Managed Projects</h3>
+  <table>
+    <thead>
+      <tr><th>Project</th><th>Stack(s)</th><th>Managed Files</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>ERP</td>
+        <td><span class="chip chip-ts">typescript-nestjs</span></td>
+        <td>55</td>
+      </tr>
+      <tr>
+        <td>PhAST</td>
+        <td><span class="chip chip-dart">flutter-dart</span></td>
+        <td>43</td>
+      </tr>
+      <tr>
+        <td>PhLOW</td>
+        <td><span class="chip chip-ts">typescript-nestjs</span> <span class="chip chip-cs">csharp-dotnet</span></td>
+        <td>31</td>
+      </tr>
+      <tr>
+        <td>PhAZE</td>
+        <td><span class="chip chip-py">python-fastapi</span></td>
+        <td>&mdash;</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 2. ARCHITECTURE -->
+<section id="architecture">
+  <h2><span class="num">02</span> Repository Structure</h2>
+  <p class="section-sub">A layered composition model: base + stack overlays + project overrides.</p>
+
+  <div class="tree">
+<span class="dir">claude-workflow/</span>
+<span class="dir">  base/</span>                          <span class="desc">&larr; universal files for every project</span>
+<span class="file">    WORKFLOW.md</span>                    <span class="desc">master workflow document</span>
+<span class="file">    settings.base.json</span>             <span class="desc">lifecycle hook definitions</span>
+<span class="dir">    hooks/</span>                         <span class="desc">6 lifecycle hooks (.sh)</span>
+<span class="dir">    guards/</span>                        <span class="desc">6 guard definitions (.json)</span>
+<span class="dir">    skills/</span>                        <span class="desc">9 core skills</span>
+<span class="dir">    agents/</span>                        <span class="desc">agent templates</span>
+<span class="dir">    blueprints/</span>                    <span class="desc">architecture blueprints</span>
+<span class="dir">  stacks/</span>                          <span class="desc">&larr; technology-specific overlays</span>
+<span class="dir">    typescript-nestjs/</span>              <span class="desc">commands, hooks, guards, failure-patterns</span>
+<span class="dir">    python-fastapi/</span>                <span class="desc">commands, hooks, guards, failure-patterns</span>
+<span class="dir">    flutter-dart/</span>                  <span class="desc">commands, hooks, guards, failure-patterns</span>
+<span class="dir">    csharp-dotnet/</span>                 <span class="desc">commands, hooks, guards, failure-patterns</span>
+<span class="dir">  tools/</span>                            <span class="desc">&larr; synchronization engine</span>
+<span class="file">    init.sh</span>                        <span class="desc">initialize a project from master</span>
+<span class="file">    generate_lock.py</span>               <span class="desc">generate workflow.lock with dual checksums</span>
+<span class="file">    compose_settings.py</span>             <span class="desc">merge base + guards + stack overlays</span>
+<span class="file">    drift_check.py</span>                 <span class="desc">three-way checksum comparison</span>
+<span class="file">    diff.sh</span>                        <span class="desc">wrapper for drift_check.py</span>
+<span class="file">    sync.sh</span>                        <span class="desc">pull updates from master</span>
+<span class="file">    promote.sh</span>                     <span class="desc">promote project file &rarr; master</span>
+<span class="dir">  templates/</span>                        <span class="desc">&larr; CI workflow templates for projects</span>
+<span class="file">  version.json</span>                      <span class="desc">current master version (1.0.0)</span>
+<span class="file">  projects.json</span>                     <span class="desc">registry of managed projects</span>
+  </div>
+
+  <h3>Three-Layer Composition</h3>
+  <div class="layers">
+    <div class="layer" style="background:var(--surface);">
+      <div class="layer-num">L3</div>
+      <div class="layer-label">Project Overrides</div>
+      <div class="layer-desc">workflow.overrides.yaml &mdash; excludes, additional settings, blueprint overrides</div>
+    </div>
+    <div class="layer" style="background:var(--surface2);">
+      <div class="layer-num">L2</div>
+      <div class="layer-label">Stack Overlay</div>
+      <div class="layer-desc">Technology-specific hooks, guards, commands, failure patterns</div>
+    </div>
+    <div class="layer" style="background:var(--surface);">
+      <div class="layer-num">L1</div>
+      <div class="layer-label">Base</div>
+      <div class="layer-desc">Universal hooks, guards, skills, agents, blueprints</div>
+    </div>
+  </div>
+
+  <p>
+    At initialization, base files are copied first. Stack overlays are then applied on top &mdash;
+    hooks and guards are <strong>appended</strong>, not replaced. Finally, project overrides let
+    each repo exclude files it owns locally and merge additional settings.
+  </p>
+</section>
+
+<!-- 3. LIFECYCLE -->
+<section id="lifecycle">
+  <h2><span class="num">03</span> The Sync Lifecycle</h2>
+  <p class="section-sub">Three tools, three phases: initialize, detect, update.</p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="step-num">Phase 1</div>
+      <div class="step-title">init.sh</div>
+      <div class="step-detail">Copy base &amp; stack files, resolve placeholders, generate lock</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">Phase 2</div>
+      <div class="step-title">diff.sh</div>
+      <div class="step-detail">Three-way checksum comparison: local vs lock vs master</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">Phase 3</div>
+      <div class="step-title">sync.sh</div>
+      <div class="step-detail">Auto-update BEHIND files, restore MISSING, warn on DIVERGED</div>
+    </div>
+  </div>
+
+  <h3>Phase 1: Initialization</h3>
+  <div class="code-label">Terminal</div>
+  <pre><code>./tools/init.sh --project /path/to/my-project --stacks typescript-nestjs</code></pre>
+
+  <p>This command performs five steps in sequence:</p>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-title">Copy Base</div>
+      <div class="step-detail">Hooks, skills, agents, blueprints</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-title">Apply Stacks</div>
+      <div class="step-detail">Stack hooks, guards, failure patterns</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-title">Resolve</div>
+      <div class="step-detail">{{PLACEHOLDER}} values from commands.yaml</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">4</div>
+      <div class="step-title">Compose</div>
+      <div class="step-detail">Merge settings: base + guards + overlays</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">5</div>
+      <div class="step-title">Lock</div>
+      <div class="step-detail">Generate workflow.lock with checksums</div>
+    </div>
+  </div>
+
+  <h3>Phase 2: Drift Detection</h3>
+  <div class="code-label">Terminal</div>
+  <pre><code>./tools/diff.sh --project /path/to/my-project</code></pre>
+
+  <p>Compares three checksums per file to produce a status:</p>
+
+  <table>
+    <thead>
+      <tr><th>Local vs Lock</th><th>Master Changed?</th><th>Status</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>match</td>
+        <td>no</td>
+        <td><span class="status status-current">CURRENT</span></td>
+        <td>No action needed</td>
+      </tr>
+      <tr>
+        <td>match</td>
+        <td>yes</td>
+        <td><span class="status status-behind">BEHIND</span></td>
+        <td>Auto-update available</td>
+      </tr>
+      <tr>
+        <td>differ</td>
+        <td>yes</td>
+        <td><span class="status status-diverged">DIVERGED</span></td>
+        <td>Manual merge needed</td>
+      </tr>
+      <tr>
+        <td>differ</td>
+        <td>no</td>
+        <td><span class="status status-local">LOCAL-EDIT</span></td>
+        <td>Project modified (allowed)</td>
+      </tr>
+      <tr>
+        <td colspan="2">file deleted locally</td>
+        <td><span class="status status-missing">MISSING</span></td>
+        <td>Restore from master</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Phase 3: Sync Updates</h3>
+  <div class="code-label">Terminal</div>
+  <pre><code>./tools/sync.sh --project /path/to/my-project --auto</code></pre>
+  <p>
+    Automatically updates <span class="status status-behind">BEHIND</span> files and restores
+    <span class="status status-missing">MISSING</span> files. Reports
+    <span class="status status-diverged">DIVERGED</span> files for manual attention.
+    <span class="status status-local">LOCAL-EDIT</span> files are left untouched.
+    After sync, the lock is regenerated with current checksums.
+  </p>
+</section>
+
+<!-- 4. STACKS -->
+<section id="stacks">
+  <h2><span class="num">04</span> Technology Stacks</h2>
+  <p class="section-sub">Each stack provides commands, hooks, guards, and failure patterns for its ecosystem.</p>
+
+  <div class="tabs" data-tabs="stacks">
+    <button class="tab active" data-tab="ts">TypeScript / NestJS</button>
+    <button class="tab" data-tab="py">Python / FastAPI</button>
+    <button class="tab" data-tab="dart">Flutter / Dart</button>
+    <button class="tab" data-tab="cs">C# / .NET</button>
+  </div>
+  <div class="tab-content" data-tabs="stacks">
+    <div class="tab-panel active" data-tab="ts">
+      <p><strong>Used by:</strong> ERP, PhLOW</p>
+      <p><strong>Commands:</strong></p>
+      <pre><code><span class="key">FORMAT_COMMAND</span>:          pnpm nx affected -t lint --fix
+<span class="key">TEST_COMMAND</span>:            pnpm nx affected -t test
+<span class="key">WATCH_COMMAND</span>:           pnpm nx test &lt;project&gt; --watch
+<span class="key">TEST_FILE_CONVENTION</span>:   modules/&lt;x&gt;/__tests__/&lt;x&gt;.spec.ts
+<span class="key">MIGRATION_COMMAND</span>:       pnpm drizzle-kit generate</code></pre>
+      <p><strong>Extra guards:</strong> design-doc-guard, file-size-limits, ts-ignore-blocker, any-type-blocker, naming-detector</p>
+    </div>
+    <div class="tab-panel" data-tab="py">
+      <p><strong>Used by:</strong> PhAZE</p>
+      <p><strong>Commands:</strong></p>
+      <pre><code><span class="key">FORMAT_COMMAND</span>:          ruff format . && ruff check . --fix
+<span class="key">TEST_COMMAND</span>:            pytest
+<span class="key">TYPE_CHECK_COMMAND</span>:      mypy src/
+<span class="key">MIGRATION_COMMAND</span>:       alembic revision --autogenerate</code></pre>
+      <p><strong>Failure patterns:</strong> python.py &mdash; matches import errors, type mismatches, alembic conflicts</p>
+    </div>
+    <div class="tab-panel" data-tab="dart">
+      <p><strong>Used by:</strong> PhAST</p>
+      <p><strong>Commands:</strong></p>
+      <pre><code><span class="key">FORMAT_COMMAND</span>:          dart format .
+<span class="key">TEST_COMMAND</span>:            flutter test
+<span class="key">ANALYZE_COMMAND</span>:         flutter analyze
+<span class="key">BUILD_RUNNER</span>:            dart run build_runner build</code></pre>
+      <p><strong>Critical files:</strong> drift/tables.dart, pubspec.yaml, app_router.dart</p>
+    </div>
+    <div class="tab-panel" data-tab="cs">
+      <p><strong>Used by:</strong> PhLOW</p>
+      <p><strong>Commands:</strong></p>
+      <pre><code><span class="key">FORMAT_COMMAND</span>:          dotnet format
+<span class="key">TEST_COMMAND</span>:            dotnet test
+<span class="key">BUILD_COMMAND</span>:           dotnet build</code></pre>
+      <p><strong>Conventions:</strong> PascalCase, CQRS/MediatR pattern, appsettings.json configuration</p>
+    </div>
+  </div>
+
+  <p style="margin-top:20px;">
+    Each stack provides a <code>commands.yaml</code> file that defines placeholder values.
+    These are resolved into all <code>.md</code> files during initialization, so project
+    files contain concrete commands rather than generic placeholders.
+  </p>
+</section>
+
+<!-- 5. PLACEHOLDERS -->
+<section id="placeholders">
+  <h2><span class="num">05</span> Placeholder Resolution</h2>
+  <p class="section-sub">Master files use <code>{{PLACEHOLDER}}</code> syntax. Stacks provide the values.</p>
+
+  <p>
+    Master template files (skills, blueprints, WORKFLOW.md) reference commands generically.
+    During <code>init.sh</code>, all <code>.md</code> files are walked and placeholders are
+    replaced with concrete values from the stack's <code>commands.yaml</code>.
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">Before (master source)</div>
+      <pre style="border:none;padding:10px 0;margin:0;"><code>Run: <span class="str">{{FORMAT_COMMAND}}</span>
+Tests: <span class="str">{{TEST_COMMAND}}</span>
+Version: <span class="str">{{VERSION}}</span></code></pre>
+    </div>
+    <div class="card">
+      <div class="card-title">After (project file)</div>
+      <pre style="border:none;padding:10px 0;margin:0;"><code>Run: <span class="str">pnpm nx affected -t lint --fix</span>
+Tests: <span class="str">pnpm nx affected -t test</span>
+Version: <span class="str">1.0.0</span></code></pre>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>How it works under the hood:</strong> The init script collects all key-value pairs from
+    each stack's <code>commands.yaml</code> (later stacks override earlier ones). List values like
+    <code>classify_categories</code> are joined with <code>, </code>. Two special values &mdash;
+    <code>{{VERSION}}</code> and <code>{{STACKS}}</code> &mdash; are always available.
+  </div>
+</section>
+
+<!-- 6. LOCK FILE -->
+<section id="lock">
+  <h2><span class="num">06</span> The Lock File</h2>
+  <p class="section-sub"><code>workflow.lock</code> is the contract between a project and the master version it synced from.</p>
+
+  <div class="code-label">workflow.lock</div>
+  <pre><code>{
+  <span class="key">"version"</span>: <span class="str">"1.0.0"</span>,
+  <span class="key">"stacks"</span>: [<span class="str">"typescript-nestjs"</span>],
+  <span class="key">"lastSync"</span>: <span class="str">"2026-03-03T14:24:12Z"</span>,
+
+  <span class="comment">// Checksums of LOCAL files (after placeholder resolution + formatting)</span>
+  <span class="key">"managed"</span>: {
+    <span class="str">"WORKFLOW.md"</span>:           <span class="str">"sha256:6e7193ff..."</span>,
+    <span class="str">"hooks/session-start.sh"</span>: <span class="str">"sha256:abc123..."</span>,
+    <span class="str">"settings.json"</span>:          <span class="str">"sha256:def456..."</span>
+  },
+
+  <span class="comment">// Checksums of RAW MASTER source files (pre-resolution, pre-formatting)</span>
+  <span class="key">"masterChecksums"</span>: {
+    <span class="str">"WORKFLOW.md"</span>:           <span class="str">"sha256:a1b2c3..."</span>,
+    <span class="str">"hooks/session-start.sh"</span>: <span class="str">"sha256:abc123..."</span>,
+    <span class="str">"settings.json"</span>:          <span class="str">"sha256:def456..."</span>
+  }
+}</code></pre>
+
+  <p>Two sets of checksums serve different purposes:</p>
+
+  <table>
+    <thead>
+      <tr><th>Field</th><th>Contains</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>managed</code></td>
+        <td>Hash of local file (post-resolution, post-formatting)</td>
+        <td>Detect local edits: has the project modified this file since sync?</td>
+      </tr>
+      <tr>
+        <td><code>masterChecksums</code></td>
+        <td>Hash of raw master source (pre-resolution)</td>
+        <td>Detect master changes: has the master evolved since sync?</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Why two sets?</strong> A project's local file may differ from the raw master source for
+    legitimate reasons: placeholder resolution turns <code>{{FORMAT_COMMAND}}</code> into a real
+    command, and formatters like prettier may reformat whitespace. Storing both hashes lets drift
+    detection compare apples to apples &mdash; local-to-local and master-to-master.
+  </div>
+</section>
+
+<!-- 7. DRIFT DETECTION -->
+<section id="drift">
+  <h2><span class="num">07</span> Three-Way Drift Detection</h2>
+  <p class="section-sub">The core algorithm that determines the status of every managed file.</p>
+
+  <p>
+    For each file tracked in the lock, <code>drift_check.py</code> computes two boolean comparisons
+    and maps them to one of five statuses:
+  </p>
+
+  <div class="code-label">drift_check.py &mdash; core logic</div>
+  <pre><code><span class="comment"># 1. Has the local file changed since last sync?</span>
+local_hash = <span class="fn">sha256</span>(local_path)
+local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_path]
+
+<span class="comment"># 2. Has the master source changed since last sync?</span>
+<span class="kw">if</span> rel_path <span class="kw">in</span> lock[<span class="str">"masterChecksums"</span>]:
+    <span class="comment"># Compare raw master hashes (formatter-resilient)</span>
+    current_master = <span class="fn">sha256</span>(master_path)
+    master_changed = lock[<span class="str">"masterChecksums"</span>][rel_path] != current_master
+<span class="kw">else</span>:
+    <span class="comment"># Fallback for pre-upgrade locks: compare with resolution</span>
+    master_hash = <span class="fn">sha256_resolved</span>(master_path, commands)
+    master_changed = lock_hash != master_hash
+
+<span class="comment"># 3. Map to status</span>
+<span class="kw">if</span>     local_matches_lock <span class="kw">and not</span> master_changed:  <span class="comment"># CURRENT</span>
+<span class="kw">elif</span>   local_matches_lock <span class="kw">and</span>     master_changed:  <span class="comment"># BEHIND</span>
+<span class="kw">elif</span> <span class="kw">not</span> local_matches_lock <span class="kw">and</span>   master_changed:  <span class="comment"># DIVERGED</span>
+<span class="kw">else</span>:                                              <span class="comment"># LOCAL-EDIT</span></code></pre>
+
+  <h3>Visual: How Statuses Emerge</h3>
+  <pre style="line-height:1.5;"><code>
+  Master repo         workflow.lock         Project .claude/
+  ───────────         ─────────────         ────────────────
+  raw source    ──&gt;   masterChecksums       managed hashes   &lt;──  local files
+       │                    │                      │                    │
+       │              <span class="comment">compare raw-to-raw</span>      <span class="comment">compare local-to-lock</span>     │
+       │                    │                      │                    │
+       ▼                    ▼                      ▼                    ▼
+  current hash     master changed?          local changed?        current hash
+                         │                        │
+                         ▼                        ▼
+                   ┌───────────────────────────────────┐
+                   │     <span class="fn">Status Decision Matrix</span>         │
+                   │                                   │
+                   │  local=same  master=same  CURRENT │
+                   │  local=same  master=diff  BEHIND  │
+                   │  local=diff  master=diff  DIVERGED│
+                   │  local=diff  master=same  LOCAL   │
+                   └───────────────────────────────────┘
+</code></pre>
+
+  <h3>Excluded Files</h3>
+  <p>
+    Projects can mark files as excluded in <code>workflow.overrides.yaml</code>. Excluded files
+    are skipped entirely during drift detection &mdash; the project owns them.
+  </p>
+  <div class="code-label">workflow.overrides.yaml</div>
+  <pre><code><span class="key">exclude</span>:
+  - skills/debug/
+  - skills/generate-endpoint/
+  - agents/architecture-guardian.md</code></pre>
+</section>
+
+<!-- 8. FORMATTER FIX -->
+<section id="formatter-fix">
+  <h2><span class="num">08</span> The Formatter Problem &amp; Fix</h2>
+  <p class="section-sub">Why <code>masterChecksums</code> was added and the problem it solves.</p>
+
+  <h3>The Problem</h3>
+  <p>
+    Some projects run formatters (like prettier) as pre-commit hooks. When a project initializes
+    from master, the files are copied and placeholders resolved. But on commit, prettier reformats
+    the <code>.md</code> files &mdash; changing whitespace, line lengths, and list formatting.
+  </p>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <div class="card-title">Before the fix</div>
+      <p>
+        The lock stored <strong>one</strong> set of hashes (local files post-prettier).
+        Drift detection re-computed master hashes by resolving placeholders but
+        <em>without</em> running prettier. These never matched &rarr;
+        <span class="status status-behind">BEHIND</span> on every file, every time.
+      </p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <div class="card-title">After the fix</div>
+      <p>
+        The lock stores <strong>two</strong> sets of hashes. Drift detection compares
+        raw master &rarr; raw master (same space, no formatter involved). Local comparison
+        uses post-formatter hashes. Each comparison stays in its own domain.
+      </p>
+    </div>
+  </div>
+
+  <h3>The Timeline</h3>
+  <pre style="line-height:1.5;"><code>
+  <span class="comment">init.sh runs</span>
+    master/base/WORKFLOW.md  ──resolve──&gt;  project/.claude/WORKFLOW.md
+                                                    │
+  <span class="comment">git commit triggers prettier</span>                     │
+                                                    ▼
+                                          WORKFLOW.md <span class="str">(reformatted)</span>
+
+  <span class="comment">workflow.lock records:</span>
+    managed[WORKFLOW.md]         = sha256(reformatted file)   <span class="comment">&larr; post-prettier</span>
+    masterChecksums[WORKFLOW.md] = sha256(raw master source)  <span class="comment">&larr; pre-resolution</span>
+
+  <span class="comment">diff.sh runs later:</span>
+    local hash                   = sha256(reformatted file)   <span class="comment">&larr; matches managed</span>
+    current master hash          = sha256(raw master source)  <span class="comment">&larr; matches masterChecksums</span>
+                                                                      ▼
+                                                               <span class="status status-current">CURRENT</span>
+</code></pre>
+
+  <div class="callout warn">
+    <strong>Backward compatibility:</strong> Locks generated before this fix lack
+    <code>masterChecksums</code>. The drift checker falls back to the old behavior
+    (resolving placeholders and comparing against lock hashes) for these files.
+    Projects can regenerate their lock via <code>sync.sh</code> to upgrade.
+  </div>
+</section>
+
+<!-- 9. CI -->
+<section id="ci">
+  <h2><span class="num">09</span> CI/CD Integration</h2>
+  <p class="section-sub">Automated drift checks and release management.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:var(--green-dim);color:var(--green);">CI</div> drift-check.yml</div>
+      <p>
+        Runs weekly (Monday 8am UTC), on release, and on manual trigger.
+        Checks each project in <code>projects.json</code>. If drift is found,
+        creates an issue in the project repo with label <code>workflow-drift</code>.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(176,128,240,0.12);color:var(--purple);">CD</div> release.yml</div>
+      <p>
+        Triggered when <code>version.json</code> changes on main.
+        Creates a git tag and GitHub release with auto-generated notes.
+        Projects upgrade by pinning the new version.
+      </p>
+    </div>
+  </div>
+
+  <h3>Drift Check Workflow</h3>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-title">Load Registry</div>
+      <div class="step-detail">Read projects.json for repos &amp; stacks</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-title">Checkout</div>
+      <div class="step-detail">Clone master + each project repo</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-title">Run diff.sh</div>
+      <div class="step-detail">Three-way comparison per project</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">4</div>
+      <div class="step-title">Report</div>
+      <div class="step-detail">Create issue if BEHIND or DIVERGED</div>
+    </div>
+  </div>
+
+  <h3>Version Upgrade Flow</h3>
+  <pre><code><span class="comment"># 1. Master publishes a new version</span>
+<span class="comment">#    (bump version.json &rarr; release.yml creates tag v1.1.0)</span>
+
+<span class="comment"># 2. Project upgrades explicitly</span>
+./tools/sync.sh --project /path/to/erp --version 1.1.0
+
+<span class="comment"># 3. Verify zero drift</span>
+./tools/diff.sh --project /path/to/erp
+<span class="comment"># Workflow Drift Report (pinned: v1.1.0)</span>
+<span class="comment">#   CURRENT: 55 files</span></code></pre>
+
+  <div class="callout">
+    <strong>No surprise upgrades.</strong> Projects pin to a specific version in their lock file.
+    New master releases do not auto-deploy. The CI drift check detects when a project falls behind
+    and notifies via GitHub issues, but the upgrade is always an explicit action.
+  </div>
+</section>
+
+</div><!-- /.container -->
+
+<!-- FOOTER -->
+<footer style="padding:40px 24px;text-align:center;color:var(--text-dim);font-size:0.82rem;border-top:1px solid var(--border);">
+  claude-workflow v1.0.0 &middot; Phygital Tech Stack
+</footer>
+
+<!-- INTERACTIVE TABS + NAV HIGHLIGHT -->
+<script>
+  // Tab switching
+  document.querySelectorAll('.tabs').forEach(tabBar => {
+    const group = tabBar.dataset.tabs;
+    const content = tabBar.nextElementSibling;
+    tabBar.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabBar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        content.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        content.querySelector(`[data-tab="${tab.dataset.tab}"]`).classList.add('active');
+      });
+    });
+  });
+
+  // Nav highlight on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.nav a[href="#${entry.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "projects": [
+    {
+      "repo": "Phygital-Tech-Stack/erp",
+      "stacks": ["typescript-nestjs"],
+      "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/phast",
+      "stacks": ["flutter-dart"],
+      "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/phaze",
+      "stacks": ["python-fastapi"],
+      "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/phlow",
+      "stacks": ["typescript-nestjs", "csharp-dotnet"],
+      "contact": "@ekkerd"
+    }
+  ]
+}

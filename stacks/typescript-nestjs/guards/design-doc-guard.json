@@ -1,0 +1,8 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Bash",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys\nd = json.load(sys.stdin)\ncmd = d.get('tool_input', {}).get('command', '')\nif 'mkdir' in cmd and 'modules/' in cmd:\n    print(json.dumps({'systemMessage': '[DESIGN] Creating a new module directory. Run /brainstorm first for new modules.'}))\nsys.exit(0)\n\""
+  }
+}

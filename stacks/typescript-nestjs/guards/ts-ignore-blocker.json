@@ -1,0 +1,8 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nif not p or not p.endswith(('.ts', '.tsx')):\n    sys.exit(0)\nskip = ['node_modules', '__tests__', '.spec.', '.test.']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\nif re.search(r'@ts-ignore|@ts-nocheck|eslint-disable(?!-next-line)', content):\n    print(json.dumps({'decision': 'block', 'reason': '[ROOT-CAUSE] BLOCKED: @ts-ignore/@ts-nocheck/eslint-disable found. Fix the type error instead of suppressing it.'}))\n    sys.exit(2)\nsys.exit(0)\n\""
+  }
+}

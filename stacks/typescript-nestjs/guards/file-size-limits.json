@@ -1,0 +1,8 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys, os\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nif not p or not p.endswith(('.ts', '.tsx')):\n    sys.exit(0)\nskip = ['node_modules', '.spec.', '.test.', '__tests__', '.d.ts']\nif any(s in p for s in skip):\n    sys.exit(0)\nif not os.path.exists(p):\n    sys.exit(0)\nwith open(p) as f:\n    lines = len(f.readlines())\nlimits = {\n    '.service.ts': (300, 450),\n    '.controller.ts': (200, 350),\n    '.repository.ts': (300, 450),\n    '.module.ts': (100, 200),\n}\nfor suffix, (soft, hard) in limits.items():\n    if p.endswith(suffix):\n        if lines > hard:\n            print(json.dumps({'decision': 'block', 'reason': f'[SIZE] BLOCKED: {os.path.basename(p)} is {lines} lines (hard limit: {hard}). Extract before continuing.'}))\n            sys.exit(2)\n        elif lines > soft:\n            print(json.dumps({'systemMessage': f'[SIZE] {os.path.basename(p)} is {lines} lines (soft limit: {soft}). Consider extraction.'}))\n        break\nsys.exit(0)\n\""
+  }
+}

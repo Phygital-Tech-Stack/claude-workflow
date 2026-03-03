@@ -1,0 +1,8 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nif not p or not p.endswith(('.ts', '.tsx')):\n    sys.exit(0)\nskip = ['node_modules', '__tests__', '.spec.', '.test.', '.d.ts']\nif any(s in p for s in skip):\n    sys.exit(0)\n# Only check service/controller public API files\nif not any(s in p for s in ['.service.ts', '.controller.ts']):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\n# Match 'any' as a type annotation (not in strings/comments)\nif re.search(r':\\s*any\\b|<any>|as\\s+any\\b', content):\n    print(json.dumps({'systemMessage': '[TYPE] Using `any` type in a public API file. Define a proper type or interface instead.'}))\nsys.exit(0)\n\""
+  }
+}

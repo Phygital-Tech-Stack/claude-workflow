@@ -1,0 +1,31 @@
+commands:
+  FORMAT_COMMAND: "pnpm nx affected -t lint --fix"
+  ANALYZE_COMMAND: "pnpm nx affected -t lint"
+  TEST_COMMAND: "pnpm nx affected -t test"
+  WATCH_COMMAND: "pnpm nx test <project> --watch"
+  TEST_FILE_CONVENTION: "modules/<x>/__tests__/<x>.spec.ts"
+  BUILD_COMMAND: "pnpm nx build <project>"
+  LINT_COMMAND: "pnpm nx affected -t lint --base=HEAD~1"
+
+classify_categories:
+  - Schema (drizzle/schema/)
+  - Backend (apps/api/src/modules/)
+  - API (apps/api/src/)
+  - Frontend (apps/web/src/)
+  - Shared Types (libs/)
+  - Tests (__tests__/)
+  - Config (*.json, *.yaml)
+
+critical_files:
+  - drizzle/schema
+  - drizzle/migrations
+  - nx.json
+  - drizzle.config
+
+code_extensions: ".ts,.tsx,.py"
+
+auto_quick_patterns:
+  - "*.spec.ts"
+  - "*.test.tsx"
+  - "*.md"
+  - "*.json"

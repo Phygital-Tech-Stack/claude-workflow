@@ -1,0 +1,8 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nif not p or not p.endswith(('.ts', '.tsx')):\n    sys.exit(0)\nskip = ['node_modules', '__tests__', '.spec.', '.test.', '.d.ts']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\ngeneric = re.findall(r'(?:function|const|let|var)\\s+(getData|handleChange|doStuff|processData|handleSubmit|fetchData|updateState)\\b', content)\nif generic:\n    print(json.dumps({'systemMessage': f'[NAMING] Generic function name detected: {generic[0]}. Use domain-specific naming instead.'}))\nsys.exit(0)\n\""
+  }
+}

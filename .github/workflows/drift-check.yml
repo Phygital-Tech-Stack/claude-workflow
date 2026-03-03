@@ -49,22 +49,27 @@ jobs:
       - name: Open issue if drifted
         if: contains(steps.drift.outputs.report, 'BEHIND') || contains(steps.drift.outputs.report, 'DIVERGED')
         uses: actions/github-script@v7
+        env:
+          DRIFT_REPORT: ${{ steps.drift.outputs.report }}
+          PROJECT_REPO: ${{ matrix.project.repo }}
         with:
           github-token: ${{ secrets.WORKFLOW_PAT }}
           script: |
-            const [owner, repo] = '${{ matrix.project.repo }}'.split('/');
+            const [owner, repo] = process.env.PROJECT_REPO.split('/');
             await github.rest.issues.create({
               owner, repo,
               title: 'Workflow drift detected against claude-workflow master',
-              body: '```\n${{ steps.drift.outputs.report }}\n```\n\nRun `/sync-workflow --update` to sync.',
+              body: '```\n' + process.env.DRIFT_REPORT + '\n```\n\nRun `/sync-workflow --update` to sync.',
               labels: ['workflow-drift']
             });
       - name: Auto-promote LOCAL-EDIT files
         if: contains(steps.drift.outputs.report, 'LOCAL-EDIT')
         env:
           GH_TOKEN: ${{ github.token }}
+          DRIFT_REPORT: ${{ steps.drift.outputs.report }}
+          PROJECT_REPO: ${{ matrix.project.repo }}
         run: |
           python3 tools/auto_promote.py \
-            --drift-json '${{ steps.drift.outputs.report }}' \
+            --drift-json "$DRIFT_REPORT" \
             --project-dir project \
-            --project-repo '${{ matrix.project.repo }}'
+            --project-repo "$PROJECT_REPO"

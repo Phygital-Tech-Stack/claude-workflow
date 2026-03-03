@@ -114,6 +114,8 @@ def main():
     commands = load_commands(args.master, stacks, version)
     results = []
 
+    master_checksums = lock.get("masterChecksums", {})
+
     for rel_path, lock_hash in lock.get("managed", {}).items():
         # Skip excluded files
         if any(rel_path.startswith(ex.rstrip("/")) for ex in excludes):
@@ -134,14 +136,29 @@ def main():
             continue
 
         local_hash = sha256(local_path)
-        # For .md files, resolve placeholders before hashing master source
-        if master_exists and master_path.endswith(".md") and commands:
-            master_hash = sha256_resolved(master_path, commands)
+
+        # Detect master changes using masterChecksums from the lock.
+        # This avoids false drift when local formatters (e.g., prettier)
+        # modify files after init/sync — we compare master-to-master
+        # (raw source hash at sync time vs raw source hash now).
+        if rel_path in master_checksums and master_exists:
+            # Compare raw master source hash at sync time vs current.
+            # masterChecksums stores raw (pre-resolution) hashes, so we
+            # compare raw-to-raw to avoid false drift from local formatters.
+            current_master_hash = sha256(master_path)
+            master_changed = master_checksums[rel_path] != current_master_hash
+        elif master_exists:
+            # Fallback for locks without masterChecksums (pre-upgrade)
+            if master_path.endswith(".md") and commands:
+                master_hash = sha256_resolved(master_path, commands)
+            else:
+                master_hash = sha256(master_path)
+            master_changed = lock_hash != master_hash
         else:
-            master_hash = sha256(master_path) if master_exists else None
+            master_changed = False
 
         local_matches_lock = local_hash == lock_hash
-        lock_matches_master = lock_hash == master_hash if master_hash else True
+        lock_matches_master = not master_changed
 
         if local_matches_lock and lock_matches_master:
             status = "CURRENT"

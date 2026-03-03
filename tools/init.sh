@@ -132,39 +132,11 @@ python3 "$MASTER_DIR/tools/compose_settings.py" \
 # 4. Generate workflow.lock
 
 echo "  Generating workflow.lock..."
-python3 -c "
-import json, hashlib, os, sys
-from datetime import datetime, timezone
-
-claude_dir = '$CLAUDE_DIR'
-version = '$VERSION'
-stacks = '$STACKS'.split(',')
-
-managed = {}
-for root, dirs, files in os.walk(claude_dir):
-    for f in files:
-        full = os.path.join(root, f)
-        rel = os.path.relpath(full, claude_dir)
-        # Skip project-owned files
-        if rel.startswith(('agent-memory/', 'progress/', 'session-files', 'decisions.log', 'compaction.log')):
-            continue
-        if rel in ('settings.local.json', 'project-rules.txt'):
-            continue
-        with open(full, 'rb') as fh:
-            sha = hashlib.sha256(fh.read()).hexdigest()
-        managed[rel] = f'sha256:{sha}'
-
-lock = {
-    'version': version,
-    'stacks': stacks,
-    'lastSync': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
-    'managed': managed
-}
-
-with open(os.path.join(claude_dir, 'workflow.lock'), 'w') as f:
-    json.dump(lock, f, indent=2)
-    f.write('\n')
-"
+python3 "$MASTER_DIR/tools/generate_lock.py" \
+  --claude-dir "$CLAUDE_DIR" \
+  --master-dir "$MASTER_DIR" \
+  --version "$VERSION" \
+  --stacks "$STACKS"
 
 # 5. Generate workflow.overrides.yaml
 

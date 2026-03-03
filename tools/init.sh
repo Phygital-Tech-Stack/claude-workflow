@@ -76,7 +76,51 @@ for stack in "${STACK_ARRAY[@]}"; do
   fi
 done
 
-# 3. Compose settings.json
+# 3. Resolve {{PLACEHOLDER}} values from commands.yaml
+echo "  Resolving placeholders..."
+python3 -c "
+import os, yaml, re, sys
+
+claude_dir = '$CLAUDE_DIR'
+stacks = '$STACKS'.split(',')
+master_dir = '$MASTER_DIR'
+
+# Collect all command values from all stacks
+commands = {}
+for stack in stacks:
+    cmd_path = os.path.join(master_dir, 'stacks', stack.strip(), 'commands.yaml')
+    if os.path.exists(cmd_path):
+        with open(cmd_path) as f:
+            data = yaml.safe_load(f) or {}
+        for key, val in data.get('commands', {}).items():
+            commands[key] = str(val)
+        # Also resolve list-based values
+        for key in ('classify_categories', 'critical_files', 'auto_quick_patterns'):
+            if key in data:
+                val = data[key]
+                if isinstance(val, list):
+                    commands[key.upper()] = ', '.join(str(v) for v in val)
+
+# Also add VERSION and STACKS
+commands['VERSION'] = '$VERSION'
+commands['STACKS'] = ', '.join(stacks)
+
+# Walk all .md files and resolve placeholders
+for root, dirs, files in os.walk(claude_dir):
+    for fname in files:
+        if not fname.endswith('.md'):
+            continue
+        fpath = os.path.join(root, fname)
+        with open(fpath, 'r') as f:
+            content = f.read()
+        original = content
+        for key, val in commands.items():
+            content = content.replace('{{' + key + '}}', val)
+        if content != original:
+            with open(fpath, 'w') as f:
+                f.write(content)
+"
+
 echo "  Composing settings.json..."
 python3 "$MASTER_DIR/tools/compose_settings.py" \
   --base "$MASTER_DIR/base/settings.base.json" \
@@ -86,6 +130,7 @@ python3 "$MASTER_DIR/tools/compose_settings.py" \
   --output "$CLAUDE_DIR/settings.json"
 
 # 4. Generate workflow.lock
+
 echo "  Generating workflow.lock..."
 python3 -c "
 import json, hashlib, os, sys
@@ -122,6 +167,7 @@ with open(os.path.join(claude_dir, 'workflow.lock'), 'w') as f:
 "
 
 # 5. Generate workflow.overrides.yaml
+
 echo "  Generating workflow.overrides.yaml..."
 cat > "$CLAUDE_DIR/workflow.overrides.yaml" << EOF
 # Claude Workflow Overrides

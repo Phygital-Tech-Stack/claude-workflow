@@ -6,9 +6,11 @@ argument-hint: <feature description>
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
 ---
 
-# /tdd - Test-Driven Development Workflow
+# /tdd - Test-Driven Development Workflow (Full Ceremony)
 
-Use this skill when implementing new features, fixing bugs, or refactoring code. Enforces the Red-Green-Refactor cycle.
+**Important**: Test-first is the DEFAULT behavior for all implementation work. Claude automatically writes failing tests before implementation code — no skill invocation needed.
+
+Use `/tdd` when you want the **full structured ceremony**: requirements analysis, test case design, explicit RED/GREEN/REFACTOR phases with verification at each step. This is useful for complex features where upfront test design prevents rework.
 
 ## TDD Cycle
 

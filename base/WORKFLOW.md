@@ -21,6 +21,40 @@ Quick Change (config, docs, minor fix)
 
 ## Components
 
+### Agents
+
+| Agent | Purpose |
+|-------|---------|
+| **code-reviewer** | Full-stack code review: auto-fix safe issues, report complex ones |
+
+> Projects add domain-specific agents (security-reviewer, database-expert, etc.) in `.claude/agents/`.
+
+<!-- PROJECT: Add your project-specific agents here. Example:
+| Agent | Purpose | Model | Tools |
+|-------|---------|-------|-------|
+| `planner` | Complex feature planning | sonnet | Read, Grep, Glob |
+| `backend-handler` | Backend handler implementation | sonnet | Read, Grep, Glob, Edit, Bash |
+-->
+
+### Core Skills
+
+| Command | When to Use | Output |
+|---------|-------------|--------|
+| `/brainstorm <topic>` | New feature, architectural decision, significant refactor | Design doc in `docs/plans/1-draft/` |
+| `/validate-change` | After implementing changes, before committing | 5-layer lattice verdict table |
+| `/tdd <feature>` | Full TDD ceremony (test-first is automatic by default) | Enforces RED-GREEN-REFACTOR cycle |
+| `/commit` | After validation passes | Conventional commit with code review |
+| `/ai-guardrails-audit` | Before doc updates, auto-invoked by /commit | Deterministic + agentic drift detection |
+| `/security [scan\|deps\|owasp]` | Checking for vulnerabilities | Secret/dependency/auth audit |
+| `/score-guardrails [path]` | Evaluating AI guardrail maturity | 20-dimension score sheet |
+| `/writing-skills audit <name>` | Creating or editing a skill | Quality scorecard (28+/35 = production) |
+| `/sync-workflow [--check\|--update]` | Sync workflow files from master | Drift report and auto-update |
+
+<!-- PROJECT: Add project-specific skills here. Example:
+| `/deploy` | Production deployment | Build, package, deploy with health checks |
+| `/pull-logs` | Collect production logs | Organized log files for debugging |
+-->
+
 ### Auto-Triggered Guards (PreToolUse)
 
 | Guard | Severity | Action |
@@ -32,10 +66,16 @@ Quick Change (config, docs, minor fix)
 
 ### PostToolUse Hooks
 
-| Hook | Action |
-|------|--------|
-| **Test reminder** | Reminds to run `/validate-change` after source file edits |
-| **Session file tracker** | Tracks modified files to `.claude/session-files-{id}.txt` |
+| Hook | Severity | Action |
+|------|----------|--------|
+| **Test reminder** | Advisory | Reminds to run `/validate-change` after source file edits |
+| **Session file tracker** | Silent | Tracks modified files to `.claude/session-files-{id}.txt` |
+
+<!-- PROJECT: Add stack-specific PostToolUse hooks here. Example (flutter-dart):
+| `dart_format.py` | Auto-fix | Auto-format Dart files |
+| `dart_analyze.py` | Advisory | Auto-analyze Dart files after edits |
+| `check_file_size.py` | **Blocker**/Advisory | Block screens >1000 lines, warn >600 |
+-->
 
 ### Lifecycle Hooks
 
@@ -48,27 +88,17 @@ Quick Change (config, docs, minor fix)
 | **Failure handler** | PostToolUseFailure | Pattern-match errors, suggest recovery actions |
 | **Teammate idle** | TeammateIdle | Check for active plans with remaining work |
 
-### Core Skills
+### Blueprints
 
-| Command | When to Use | Output |
-|---------|-------------|--------|
-| `/brainstorm <topic>` | New feature, architectural decision, significant refactor | Design doc in `docs/plans/1-draft/` |
-| `/validate-change` | After implementing changes, before committing | 5-layer lattice verdict table |
-| `/tdd <feature>` | When writing any code | Enforces RED-GREEN-REFACTOR cycle |
-| `/commit` | After validation passes | Conventional commit with code review |
-| `/ai-guardrails-audit` | Before doc updates, auto-invoked by /commit | Deterministic + agentic drift detection |
-| `/security [scan\|deps\|owasp]` | Checking for vulnerabilities | Secret/dependency/auth audit |
-| `/score-guardrails [path]` | Evaluating AI guardrail maturity | 20-dimension score sheet |
-| `/writing-skills audit <name>` | Creating or editing a skill | Quality scorecard (28+/35 = production) |
-| `/sync-workflow [--check\|--update]` | Sync workflow files from master | Drift report and auto-update |
+Deep-reference documents in `.claude/blueprints/` used by skills as authoritative sources:
 
-### Specialized Agents
+| Blueprint | Purpose | Used By |
+|-----------|---------|---------|
+| `coding-conventions.md` | Naming, file limits, banned patterns, extraction rules | `/validate-change`, `/commit`, `code-reviewer` agent |
+| `testing-patterns.md` | Test organization, mock patterns, per-layer testing | `/tdd`, `code-reviewer` agent |
+| `api-contracts.md` | Handler patterns, response shapes, endpoint mapping | `/validate-handler` (if present) |
 
-| Agent | Purpose |
-|-------|---------|
-| **code-reviewer** | Full-stack code review: auto-fix safe issues, report complex ones |
-
-> Projects add domain-specific agents (security-reviewer, database-expert, etc.) in `.claude/agents/`.
+<!-- PROJECT: Add project-specific blueprints here. -->
 
 ## Session Continuity Lifecycle
 
@@ -205,7 +235,7 @@ When an agent encounters a concern outside its domain, it **flags but does not f
 
 ## Development Principles
 
-- **TDD**: Write failing test first, then implement. No code without a test.
+- **TDD**: Write failing test first, then implement. Test-first is the default; use `/tdd` for the full ceremony.
 - **YAGNI**: Don't build what isn't needed. Three similar lines > premature abstraction.
 - **Root-cause debugging**: Fix the cause, not the symptom. No `// hack` or `// temp fix`.
 - **Validate before commit**: Always run `/validate-change` before `/commit`.
@@ -236,14 +266,38 @@ This workflow is managed by the [claude-workflow](https://github.com/Phygital-Te
 
 Files listed in `workflow.overrides.yaml` → `exclude` are project-owned and never overwritten by sync.
 
+## Tool Integrations
+
+<!-- PROJECT: Document all external tools used by the AI development system. Example:
+
+### MCP Servers (`.mcp.json`)
+
+| Server | Package | Domain | Trust | Access |
+|--------|---------|--------|-------|--------|
+| `context7` | `@upstash/context7-mcp` | Documentation lookup | High | Read-only |
+
+### CLI Tools (via Bash allowlist)
+
+| Tool | Domain | Used By | Permission |
+|------|--------|---------|------------|
+| `dart format` | Code formatting | `dart_format.py` hook, `/commit` | Auto-allowed |
+
+### Hook Summary
+
+Total integrations: N MCP servers + N CLI tools + N hooks = N tool integrations
+-->
+
+> Projects should document their full tool inventory here for audit and onboarding purposes.
+
 ## Reference
 
 - **Agent definitions**: `.claude/agents/*.md`
-- **Agent memory**: `.claude/agent-memory/*/MEMORY.md`
+- **Agent memory**: `.claude/agent-memory/*/MEMORY.md` (persistent learning per agent)
 - **Skill definitions**: `.claude/skills/*/SKILL.md`
-- **Hook scripts**: `.claude/hooks/*.sh`, `.claude/hooks/*.py`
-- **Settings**: `.claude/settings.json`
-- **Session file tracking**: `.claude/session-files-*.txt`
+- **Hook scripts (Python)**: `.claude/hooks/*.py` (PostToolUse validators)
+- **Hook scripts (Shell)**: `.claude/hooks/*.sh` (lifecycle hooks)
+- **Settings**: `.claude/settings.json` (hook registrations, permissions)
+- **Session file tracking**: `.claude/session-files-*.txt` (auto-cleaned after 7 days)
 - **Decision log**: `.claude/decisions.log`
 - **Compaction log**: `.claude/compaction.log`
 - **Session progress**: `.claude/progress/`

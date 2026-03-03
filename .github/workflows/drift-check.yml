@@ -55,3 +55,12 @@ jobs:
               body: '```\n${{ steps.drift.outputs.report }}\n```\n\nRun `/sync-workflow --update` to sync.',
               labels: ['workflow-drift']
             });
+      - name: Auto-promote LOCAL-EDIT files
+        if: contains(steps.drift.outputs.report, 'LOCAL-EDIT')
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+        run: |
+          python3 tools/auto_promote.py \
+            --drift-json '${{ steps.drift.outputs.report }}' \
+            --project-dir project \
+            --project-repo '${{ matrix.project.repo }}'

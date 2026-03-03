@@ -1,0 +1,76 @@
+---
+name: validate-change
+description: Use when verifying code changes are correct and complete before committing. Runs a 5-layer verification lattice from fast deterministic checks to agentic review. Triggers on 'validate', 'validate my change', 'check if this is ready', or after implementation work.
+user-invocable: true
+argument-hint: <description of change>
+allowed-tools: Read, Grep, Glob, Bash, Task
+model: opus
+---
+
+# Validate Change (5-Layer Verification Lattice)
+
+**PURPOSE**: Systematically verify code changes by running an ordered 5-layer pipeline. Each layer runs only if the previous passes.
+
+## Iron Rules
+
+1. **Start with `git diff`** — know what changed before analyzing.
+2. **Run the checks** — execute commands, don't just read code.
+3. **Layers are sequential** — stop on first failure.
+4. **Produce a verdict** — end with PASS/FAIL table.
+5. **Validate only what changed** — scope checks to affected files.
+6. **No manual bypass** — quick mode is auto-detected, not user-selected.
+
+## Process
+
+### Step 0: Scope the Change
+
+```bash
+git diff --stat
+git diff
+```
+
+Classify changes: {{CLASSIFY_CATEGORIES}}
+
+**Auto-quick**: If ALL changed files match {{AUTO_QUICK_PATTERNS}}, AND fewer than 3 files changed with no new files — run Layers 1-2 only.
+
+### Layers
+
+| Layer | Name | What It Does | On FAIL |
+|-------|------|-------------|---------|
+| **1** | Deterministic | {{L1_COMMANDS}} | Stop — fix before tests |
+| **2** | Semantic | {{L2_COMMANDS}} | Stop — fix logic bugs |
+| **3** | Security | Gitleaks, deprecated patterns, file sizes | Stop — MUST fix |
+| **4** | Agentic | `code-reviewer` agent with BLOCK/WARN/INFO tiers | BLOCK = FAIL, WARN = L5 |
+| **5** | Human | Only when L3/L4 escalate findings | User decides |
+
+See `reference.md` for full commands per layer, severity tier tables, auto-quick detection details, and example outputs.
+
+## Verdict
+
+```
+## Validation Result: [PASS | FAIL | WARN]
+
+| Layer | Check | Result | Detail |
+|-------|-------|--------|--------|
+| 1 | Format / Analysis | PASS/FAIL | ... |
+| 2 | Tests / Cross-boundary | PASS/FAIL | ... |
+| 3 | Secrets / Deprecated / File Sizes | PASS/FAIL | ... |
+| 4 | Code Review | PASS/WARN/FAIL | N BLOCK, M WARN |
+```
+
+**Overall**: FAIL if any BLOCK or layer failure. WARN if WARN-tier findings pending. PASS if all clear.
+
+## Related Skills
+
+- **Natural follow-up**: `/commit` after all layers pass (commit requires `/validate-change` as a hard gate)
+- **See also**: `/tdd` for test-driven implementation before validation
+- **See also**: `/brainstorm` for designing features before implementation
+- **See also**: `/security` for standalone security checks
+
+## Pressure Tested
+
+| Scenario | Pressure Type | Skill Defense |
+|----------|--------------|---------------|
+| "Only formatting changed, skip layers 3-5" | exhaustion | Auto-quick detection is rule-based, not manual — only triggers when ALL conditions met |
+| "Tests fail but it's a flaky test, override" | authority | BLOCK findings cannot be overridden; WARN findings require documented reason passed to `/commit` |
+| "Validate this 15-file cross-layer change" | complexity | Cross-boundary trace in Layer 2 verifies all consumers; Layer 3 checks patterns |

@@ -82,6 +82,7 @@ Batch audit all skills in `.claude/skills/`. Output summary table with scores an
 
 - **See also**: `/brainstorm` for designing the feature a skill will support
 - **See also**: `/ai-guardrails-audit` for verifying skill changes don't drift from docs
+- **See also**: `/commit` for committing skill changes after edits
 
 ## Pressure Tested
 

@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Use before non-trivial features or architectural changes. Socratic dialogue to validate intent, explore approaches, and design incrementally before implementation.
+description: Use when unsure how to approach a feature, or when you want to evaluate trade-offs before coding. Explores intent, constraints, and alternatives before implementation.
 user-invocable: true
 argument-hint: <idea or feature description>
 allowed-tools: Read, Grep, Glob, Bash, AskUserQuestion, EnterPlanMode

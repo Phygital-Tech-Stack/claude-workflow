@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Use when committing code changes after a work session. Supports session-scoped staging, lattice gate, code review, progress management, and conventional commits.
+description: Use when committing code changes after a work session.
 user-invocable: true
 argument-hint: [--all | --amend]
 allowed-tools: Bash, Read, Grep, Glob, Edit, Task
@@ -61,11 +61,7 @@ Generate conventional commit with `Co-Authored-By` trailer. **Types**: feat, fix
 
 ### 6. Post-Commit
 
-- Update progress file (move completed items, update "Next Session Should")
-- Archive completed plans (all steps checked off → move to `docs/plans/5-archive/`)
-- Write session progress file to `.claude/progress/<TIMESTAMP>-<SESSION_ID>.md`
-- Append to `.claude/decisions.log` if architectural decisions were made
-- Clean up tracking file (remove committed paths)
+Update progress files, archive completed plans, write session progress, append decisions. See `reference.md` for full post-commit checklist.
 
 ### 7. Verify
 
@@ -73,22 +69,7 @@ Generate conventional commit with `Co-Authored-By` trailer. **Types**: feat, fix
 git log -1 --stat
 ```
 
-## Common Mistakes
-
-| Mistake | Fix |
-|---------|-----|
-| Using `--no-verify` | Fix the lint/type error, never skip hooks |
-| Pushing to main without confirming | Always confirm before pushing |
-| `git add .` / `git add -A` | Stage files by name |
-| Committing without /validate-change | Run /validate-change first — hard gate |
-| Committing `.env` or credentials | Exclude sensitive files, warn user |
-
-## Error Handling
-
-- **Lattice not run**: Block commit, tell user to run `/validate-change`
-- **Lint fails**: Fix issue. NEVER use `--no-verify`
-- **Secrets detected**: ABORT immediately
-- **No changes**: Inform user, stop
+See `reference.md` for common mistakes and error handling.
 
 ## Related Skills
 

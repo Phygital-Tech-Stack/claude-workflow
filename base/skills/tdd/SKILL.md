@@ -76,7 +76,7 @@ Return to Phase 3 for the next test case until all acceptance criteria are met.
 
 ## Related Skills
 
-- **See also**: `/validate-change` after completing TDD cycle
+- **Recommended after**: `/validate-change` to verify the completed TDD cycle
 - **See also**: `/commit` to commit the feature with tests
 - **See also**: `/brainstorm` for designing complex features before TDD
 

@@ -1,0 +1,29 @@
+commands:
+  FORMAT_COMMAND: "ruff format"
+  ANALYZE_COMMAND: "ruff check && mypy"
+  TEST_COMMAND: "pytest"
+  WATCH_COMMAND: "pytest --watch"
+  TEST_FILE_CONVENTION: "tests/<path>/test_<name>.py"
+  BUILD_COMMAND: "python -m build"
+
+classify_categories:
+  - API (app/api/)
+  - Models (app/models/)
+  - Services (app/services/)
+  - Migrations (alembic/versions/)
+  - Tests (tests/)
+  - Config (pyproject.toml, *.cfg, *.ini)
+  - Docs (*.md)
+
+critical_files:
+  - alembic/
+  - pyproject.toml
+  - requirements.txt
+
+code_extensions: ".py"
+
+auto_quick_patterns:
+  - "test_*.py"
+  - "*.md"
+  - "*.json"
+  - "*.toml"

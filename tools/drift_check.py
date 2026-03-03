@@ -169,7 +169,10 @@ def main():
         else:  # local != lock, lock == master
             status = "LOCAL-EDIT"
 
-        results.append({"file": rel_path, "status": status})
+        entry = {"file": rel_path, "status": status}
+        if status == "LOCAL-EDIT" and master_path:
+            entry["master_source"] = os.path.relpath(master_path, args.master)
+        results.append(entry)
 
     # Output
     if args.format == "json":

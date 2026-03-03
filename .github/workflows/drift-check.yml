@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: load-projects
     strategy:
+      fail-fast: false
       matrix:
         project: ${{ fromJson(needs.load-projects.outputs.projects) }}
     steps:
@@ -48,6 +49,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Open issue if drifted
         if: contains(steps.drift.outputs.report, 'BEHIND') || contains(steps.drift.outputs.report, 'DIVERGED')
+        continue-on-error: true
         uses: actions/github-script@v7
         env:
           DRIFT_REPORT: ${{ steps.drift.outputs.report }}

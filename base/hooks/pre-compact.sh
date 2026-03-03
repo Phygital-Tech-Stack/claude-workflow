@@ -9,6 +9,7 @@ from datetime import datetime
 log_file = os.path.join(".claude", "compaction.log")
 os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
+# Read hook input for event details
 try:
     data = json.load(sys.stdin)
 except Exception:
@@ -21,3 +22,5 @@ with open(log_file, "a") as f:
 sys.exit(0)
 PYTHON
 )
+
+# Improved: added logging

@@ -44,6 +44,11 @@
       "repo": "Phygital-Tech-Stack/pharos-mcp",
       "stacks": ["python-fastapi"],
       "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/www",
+      "stacks": ["python-fastapi"],
+      "contact": "@ekkerd"
     }
   ]
 }

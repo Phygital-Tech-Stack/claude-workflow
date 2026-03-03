@@ -557,6 +557,11 @@
         <td><span class="chip chip-py">python-fastapi</span></td>
         <td>11</td>
       </tr>
+      <tr>
+        <td>www</td>
+        <td><span class="chip chip-py">python-fastapi</span></td>
+        <td>30</td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -754,7 +759,7 @@
       <p><strong>Extra guards:</strong> design-doc-guard, file-size-limits, ts-ignore-blocker, any-type-blocker, naming-detector</p>
     </div>
     <div class="tab-panel" data-tab="py">
-      <p><strong>Used by:</strong> PhAZE, Phuse, Phtch, Phronesis, Pharos MCP</p>
+      <p><strong>Used by:</strong> PhAZE, Phuse, Phtch, Phronesis, Pharos MCP, www</p>
       <p><strong>Commands:</strong></p>
       <pre><code><span class="key">FORMAT_COMMAND</span>:          ruff format . && ruff check . --fix
 <span class="key">TEST_COMMAND</span>:            pytest
@@ -1004,14 +1009,14 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
 <!-- 9. CI -->
 <section id="ci">
   <h2><span class="num">09</span> CI/CD Integration</h2>
-  <p class="section-sub">Automated drift checks across 9 projects and release management.</p>
+  <p class="section-sub">Automated drift checks across 10 projects and release management.</p>
 
   <div class="card-grid">
     <div class="card">
       <div class="card-title"><div class="icon" style="background:var(--green-dim);color:var(--green);">CI</div> drift-check.yml</div>
       <p>
         Runs weekly (Monday 8am UTC), on release, and on manual trigger.
-        Matrix strategy checks all 9 projects in <code>projects.json</code> in parallel.
+        Matrix strategy checks all 10 projects in <code>projects.json</code> in parallel.
         If drift is found, creates an issue in the project repo with label <code>workflow-drift</code>.
       </p>
     </div>
@@ -1030,7 +1035,7 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
     <div class="flow-step">
       <div class="step-num">1</div>
       <div class="step-title">Load Registry</div>
-      <div class="step-detail">Read projects.json (9 repos)</div>
+      <div class="step-detail">Read projects.json (10 repos)</div>
     </div>
     <div class="flow-step">
       <div class="step-num">2</div>
@@ -1066,7 +1071,8 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
     { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/phtch"</span>,      <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] },
     { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/PhX"</span>,        <span class="key">"stacks"</span>: [<span class="str">"csharp-dotnet"</span>] },
     { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/phronesis"</span>,  <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] },
-    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/pharos-mcp"</span>, <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] }
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/pharos-mcp"</span>, <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/www"</span>,        <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] }
   ]
 }</code></pre>
 
@@ -1081,7 +1087,7 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
   <span class="fn">load-projects</span>:                       <span class="comment"># Read projects.json</span>
     outputs: projects matrix
 
-  <span class="fn">check-drift</span>:                         <span class="comment"># Parallel matrix (9 jobs)</span>
+  <span class="fn">check-drift</span>:                         <span class="comment"># Parallel matrix (10 jobs)</span>
     strategy:
       matrix: ${{ fromJson(projects) }}
     steps:

@@ -131,6 +131,10 @@ def create_promote_pr(
             print(f"    {c['file']} -> {c['master_source']}")
         return None
 
+    # Configure git for CI environment
+    subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True, capture_output=True)
+
     # Create branch from main
     subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
     subprocess.run(["git", "pull", "origin", "main"], check=True, capture_output=True)

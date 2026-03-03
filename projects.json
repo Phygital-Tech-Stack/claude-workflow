@@ -19,6 +19,31 @@
       "repo": "Phygital-Tech-Stack/phlow",
       "stacks": ["typescript-nestjs", "csharp-dotnet"],
       "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/phuse",
+      "stacks": ["python-fastapi"],
+      "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/phtch",
+      "stacks": ["python-fastapi"],
+      "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/PhX",
+      "stacks": ["csharp-dotnet"],
+      "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/phronesis",
+      "stacks": ["python-fastapi"],
+      "contact": "@ekkerd"
+    },
+    {
+      "repo": "Phygital-Tech-Stack/pharos-mcp",
+      "stacks": ["python-fastapi"],
+      "contact": "@ekkerd"
     }
   ]
 }

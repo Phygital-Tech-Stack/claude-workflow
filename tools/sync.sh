@@ -135,6 +135,50 @@ for s in stacks:
   done <<< "$MISSING_FILES"
 fi
 
+# Resolve {{PLACEHOLDER}} values in updated .md files
+if [[ $UPDATED -gt 0 ]]; then
+  echo ""
+  echo "Resolving placeholders..."
+  python3 -c "
+import os, yaml
+
+claude_dir = '$CLAUDE_DIR'
+stacks = '$STACKS'.split(',')
+master_dir = '$MASTER_DIR'
+
+commands = {}
+for stack in stacks:
+    cmd_path = os.path.join(master_dir, 'stacks', stack.strip(), 'commands.yaml')
+    if os.path.exists(cmd_path):
+        with open(cmd_path) as f:
+            data = yaml.safe_load(f) or {}
+        for key, val in data.get('commands', {}).items():
+            commands[key] = str(val)
+        for key in ('classify_categories', 'critical_files', 'auto_quick_patterns'):
+            if key in data:
+                val = data[key]
+                if isinstance(val, list):
+                    commands[key.upper()] = ', '.join(str(v) for v in val)
+
+commands['VERSION'] = '$VERSION'
+commands['STACKS'] = ', '.join(stacks)
+
+for root, dirs, files in os.walk(claude_dir):
+    for fname in files:
+        if not fname.endswith('.md'):
+            continue
+        fpath = os.path.join(root, fname)
+        with open(fpath, 'r') as f:
+            content = f.read()
+        original = content
+        for key, val in commands.items():
+            content = content.replace('{{' + key + '}}', val)
+        if content != original:
+            with open(fpath, 'w') as f:
+                f.write(content)
+"
+fi
+
 # Handle DIVERGED files
 if [[ -n "$DIVERGED_FILES" ]]; then
   echo ""
@@ -172,38 +216,13 @@ if [[ $UPDATED -gt 0 ]]; then
     --output "$CLAUDE_DIR/settings.json"
 fi
 
-# Update workflow.lock
+# Update workflow.lock (reuse generate_lock.py for correct masterChecksums)
 echo "Updating workflow.lock..."
-python3 -c "
-import json, hashlib, os
-from datetime import datetime, timezone
-
-claude_dir = '$CLAUDE_DIR'
-lock_path = '$LOCK_PATH'
-
-with open(lock_path) as f:
-    lock = json.load(f)
-
-managed = {}
-for root, dirs, files in os.walk(claude_dir):
-    for f in files:
-        full = os.path.join(root, f)
-        rel = os.path.relpath(full, claude_dir)
-        if rel.startswith(('agent-memory/', 'progress/', 'session-files', 'decisions.log', 'compaction.log')):
-            continue
-        if rel in ('settings.local.json', 'project-rules.txt'):
-            continue
-        with open(full, 'rb') as fh:
-            sha = hashlib.sha256(fh.read()).hexdigest()
-        managed[rel] = f'sha256:{sha}'
-
-lock['managed'] = managed
-lock['lastSync'] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
-
-with open(lock_path, 'w') as f:
-    json.dump(lock, f, indent=2)
-    f.write('\n')
-"
+python3 "$MASTER_DIR/tools/generate_lock.py" \
+  --claude-dir "$CLAUDE_DIR" \
+  --master-dir "$MASTER_DIR" \
+  --version "$VERSION" \
+  --stacks "$STACKS"
 
 echo ""
 echo "$UPDATED files updated, 0 files updated" | head -1 | sed "s/0 files updated/$UPDATED files updated/"

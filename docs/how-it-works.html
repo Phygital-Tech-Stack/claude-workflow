@@ -532,6 +532,31 @@
         <td><span class="chip chip-py">python-fastapi</span></td>
         <td>&mdash;</td>
       </tr>
+      <tr>
+        <td>Phuse</td>
+        <td><span class="chip chip-py">python-fastapi</span></td>
+        <td>30</td>
+      </tr>
+      <tr>
+        <td>Phtch</td>
+        <td><span class="chip chip-py">python-fastapi</span></td>
+        <td>25</td>
+      </tr>
+      <tr>
+        <td>PhX</td>
+        <td><span class="chip chip-cs">csharp-dotnet</span></td>
+        <td>17</td>
+      </tr>
+      <tr>
+        <td>Phronesis</td>
+        <td><span class="chip chip-py">python-fastapi</span></td>
+        <td>10</td>
+      </tr>
+      <tr>
+        <td>Pharos MCP</td>
+        <td><span class="chip chip-py">python-fastapi</span></td>
+        <td>11</td>
+      </tr>
     </tbody>
   </table>
 </section>
@@ -719,7 +744,7 @@
   </div>
   <div class="tab-content" data-tabs="stacks">
     <div class="tab-panel active" data-tab="ts">
-      <p><strong>Used by:</strong> ERP, PhLOW</p>
+      <p><strong>Used by:</strong> ERP, PhLOW (TypeScript services)</p>
       <p><strong>Commands:</strong></p>
       <pre><code><span class="key">FORMAT_COMMAND</span>:          pnpm nx affected -t lint --fix
 <span class="key">TEST_COMMAND</span>:            pnpm nx affected -t test
@@ -729,7 +754,7 @@
       <p><strong>Extra guards:</strong> design-doc-guard, file-size-limits, ts-ignore-blocker, any-type-blocker, naming-detector</p>
     </div>
     <div class="tab-panel" data-tab="py">
-      <p><strong>Used by:</strong> PhAZE</p>
+      <p><strong>Used by:</strong> PhAZE, Phuse, Phtch, Phronesis, Pharos MCP</p>
       <p><strong>Commands:</strong></p>
       <pre><code><span class="key">FORMAT_COMMAND</span>:          ruff format . && ruff check . --fix
 <span class="key">TEST_COMMAND</span>:            pytest
@@ -747,7 +772,7 @@
       <p><strong>Critical files:</strong> drift/tables.dart, pubspec.yaml, app_router.dart</p>
     </div>
     <div class="tab-panel" data-tab="cs">
-      <p><strong>Used by:</strong> PhLOW</p>
+      <p><strong>Used by:</strong> PhLOW (C# service), PhX</p>
       <p><strong>Commands:</strong></p>
       <pre><code><span class="key">FORMAT_COMMAND</span>:          dotnet format
 <span class="key">TEST_COMMAND</span>:            dotnet test
@@ -979,15 +1004,15 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
 <!-- 9. CI -->
 <section id="ci">
   <h2><span class="num">09</span> CI/CD Integration</h2>
-  <p class="section-sub">Automated drift checks and release management.</p>
+  <p class="section-sub">Automated drift checks across 9 projects and release management.</p>
 
   <div class="card-grid">
     <div class="card">
       <div class="card-title"><div class="icon" style="background:var(--green-dim);color:var(--green);">CI</div> drift-check.yml</div>
       <p>
         Runs weekly (Monday 8am UTC), on release, and on manual trigger.
-        Checks each project in <code>projects.json</code>. If drift is found,
-        creates an issue in the project repo with label <code>workflow-drift</code>.
+        Matrix strategy checks all 9 projects in <code>projects.json</code> in parallel.
+        If drift is found, creates an issue in the project repo with label <code>workflow-drift</code>.
       </p>
     </div>
     <div class="card">
@@ -1005,12 +1030,12 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
     <div class="flow-step">
       <div class="step-num">1</div>
       <div class="step-title">Load Registry</div>
-      <div class="step-detail">Read projects.json for repos &amp; stacks</div>
+      <div class="step-detail">Read projects.json (9 repos)</div>
     </div>
     <div class="flow-step">
       <div class="step-num">2</div>
-      <div class="step-title">Checkout</div>
-      <div class="step-detail">Clone master + each project repo</div>
+      <div class="step-title">Matrix Checkout</div>
+      <div class="step-detail">Clone master + each project in parallel</div>
     </div>
     <div class="flow-step">
       <div class="step-num">3</div>
@@ -1024,14 +1049,64 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
     </div>
   </div>
 
+  <h3>Project Registry</h3>
+  <p>
+    The workflow uses a matrix strategy driven by <code>projects.json</code> to check all projects in parallel.
+    A <code>WORKFLOW_PAT</code> secret (fine-grained token with <code>contents:read</code>) enables cross-repo checkout.
+  </p>
+
+  <div class="code-label">projects.json</div>
+  <pre><code>{
+  <span class="key">"projects"</span>: [
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/erp"</span>,        <span class="key">"stacks"</span>: [<span class="str">"typescript-nestjs"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/phast"</span>,      <span class="key">"stacks"</span>: [<span class="str">"flutter-dart"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/phaze"</span>,      <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/phlow"</span>,      <span class="key">"stacks"</span>: [<span class="str">"typescript-nestjs"</span>, <span class="str">"csharp-dotnet"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/phuse"</span>,      <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/phtch"</span>,      <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/PhX"</span>,        <span class="key">"stacks"</span>: [<span class="str">"csharp-dotnet"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/phronesis"</span>,  <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] },
+    { <span class="key">"repo"</span>: <span class="str">"Phygital-Tech-Stack/pharos-mcp"</span>, <span class="key">"stacks"</span>: [<span class="str">"python-fastapi"</span>] }
+  ]
+}</code></pre>
+
+  <h3>CI Workflow Architecture</h3>
+  <div class="code-label">drift-check.yml</div>
+  <pre><code><span class="kw">on</span>:
+  <span class="key">schedule</span>:   [cron: <span class="str">'0 8 * * 1'</span>]  <span class="comment"># Weekly Monday 8am UTC</span>
+  <span class="key">workflow_dispatch</span>:                  <span class="comment"># Manual trigger</span>
+  <span class="key">release</span>:   [types: published]        <span class="comment"># On new version</span>
+
+<span class="kw">jobs</span>:
+  <span class="fn">load-projects</span>:                       <span class="comment"># Read projects.json</span>
+    outputs: projects matrix
+
+  <span class="fn">check-drift</span>:                         <span class="comment"># Parallel matrix (9 jobs)</span>
+    strategy:
+      matrix: ${{ fromJson(projects) }}
+    steps:
+      - checkout master repo
+      - checkout project repo (via WORKFLOW_PAT)
+      - <span class="fn">diff.sh</span> --project project --json
+      - <span class="kw">if</span> BEHIND|DIVERGED: create issue</code></pre>
+
+  <h3>Per-Project Drift Workflow</h3>
+  <p>
+    Each project also has its own <code>.github/workflows/workflow-drift.yml</code> installed
+    during onboarding. This enables projects to run local drift checks independently.
+  </p>
+
   <h3>Version Upgrade Flow</h3>
   <pre><code><span class="comment"># 1. Master publishes a new version</span>
 <span class="comment">#    (bump version.json &rarr; release.yml creates tag v1.1.0)</span>
 
-<span class="comment"># 2. Project upgrades explicitly</span>
+<span class="comment"># 2. CI drift check detects the gap, opens issue in each project</span>
+<span class="comment">#    title: "Workflow drift detected against claude-workflow master"</span>
+
+<span class="comment"># 3. Project upgrades explicitly</span>
 ./tools/sync.sh --project /path/to/erp --version 1.1.0
 
-<span class="comment"># 3. Verify zero drift</span>
+<span class="comment"># 4. Verify zero drift</span>
 ./tools/diff.sh --project /path/to/erp
 <span class="comment"># Workflow Drift Report (pinned: v1.1.0)</span>
 <span class="comment">#   CURRENT: 55 files</span></code></pre>
@@ -1041,6 +1116,30 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
     New master releases do not auto-deploy. The CI drift check detects when a project falls behind
     and notifies via GitHub issues, but the upgrade is always an explicit action.
   </div>
+
+  <h3>Required Setup</h3>
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Location</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>WORKFLOW_PAT</code></td>
+        <td>claude-workflow repo secret</td>
+        <td>Fine-grained PAT with <code>contents:read</code> on all project repos</td>
+      </tr>
+      <tr>
+        <td><code>projects.json</code></td>
+        <td>claude-workflow repo root</td>
+        <td>Registry of repos, stacks, and contacts for the matrix strategy</td>
+      </tr>
+      <tr>
+        <td><code>workflow-drift.yml</code></td>
+        <td>Each project's <code>.github/workflows/</code></td>
+        <td>Per-project drift check (installed during onboarding)</td>
+      </tr>
+    </tbody>
+  </table>
 </section>
 
 </div><!-- /.container -->

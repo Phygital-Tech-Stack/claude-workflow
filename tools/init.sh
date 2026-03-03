@@ -78,8 +78,8 @@ done
 
 # 3. Resolve {{PLACEHOLDER}} values from commands.yaml
 echo "  Resolving placeholders..."
-python3 -c "
-import os, yaml, re, sys
+COMMANDS_JSON=$(python3 -c "
+import os, yaml, json, sys
 
 claude_dir = '$CLAUDE_DIR'
 stacks = '$STACKS'.split(',')
@@ -119,7 +119,10 @@ for root, dirs, files in os.walk(claude_dir):
         if content != original:
             with open(fpath, 'w') as f:
                 f.write(content)
-"
+
+# Output commands as JSON for compose_settings.py
+print(json.dumps(commands))
+")
 
 echo "  Composing settings.json..."
 python3 "$MASTER_DIR/tools/compose_settings.py" \
@@ -127,6 +130,9 @@ python3 "$MASTER_DIR/tools/compose_settings.py" \
   --guards "$MASTER_DIR/base/guards" \
   --stacks "$STACKS" \
   --stacks-dir "$MASTER_DIR/stacks" \
+  --claude-dir "$CLAUDE_DIR" \
+  --overrides "$CLAUDE_DIR/workflow.overrides.yaml" \
+  --commands "$COMMANDS_JSON" \
   --output "$CLAUDE_DIR/settings.json"
 
 # 4. Generate workflow.lock

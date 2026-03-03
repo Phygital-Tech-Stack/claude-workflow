@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compose settings.json from base + guards + stack overlays."""
+"""Compose settings.json from base + guards + stack overlays + project overrides."""
 import argparse
 import copy
 import json
@@ -57,6 +57,57 @@ def merge_hooks(base: dict, overlay: dict) -> dict:
     return result
 
 
+def discover_agents(claude_dir: str) -> list[str]:
+    """Get agent names from .claude/agents/*.md filenames."""
+    agents_dir = os.path.join(claude_dir, "agents")
+    if not os.path.isdir(agents_dir):
+        return []
+    return sorted(
+        f.replace(".md", "")
+        for f in os.listdir(agents_dir)
+        if f.endswith(".md")
+    )
+
+
+def merge_overrides(settings: dict, overrides_settings: dict) -> dict:
+    """Merge project overrides (from workflow.overrides.yaml) into settings.
+
+    List-type keys under permissions and enabledMcpjsonServers are extended
+    (not replaced) so project-specific entries accumulate on top of base+stack.
+    """
+    result = copy.deepcopy(settings)
+    for key, val in overrides_settings.items():
+        if key == "permissions" and isinstance(val, dict):
+            if "permissions" not in result:
+                result["permissions"] = {}
+            for pkey, pval in val.items():
+                if isinstance(pval, list):
+                    result["permissions"].setdefault(pkey, []).extend(pval)
+                else:
+                    result["permissions"][pkey] = pval
+        elif key == "enabledMcpjsonServers" and isinstance(val, list):
+            existing = result.get("enabledMcpjsonServers", [])
+            result["enabledMcpjsonServers"] = list(dict.fromkeys(existing + val))
+        elif key == "hooks" and isinstance(val, dict):
+            result = merge_hooks(result, {"hooks": val})
+        else:
+            result[key] = copy.deepcopy(val)
+    return result
+
+
+def resolve_placeholders(obj, placeholders: dict[str, str]):
+    """Recursively resolve {{KEY}} placeholders in all string values."""
+    if isinstance(obj, str):
+        for key, val in placeholders.items():
+            obj = obj.replace("{{" + key + "}}", val)
+        return obj
+    if isinstance(obj, dict):
+        return {k: resolve_placeholders(v, placeholders) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [resolve_placeholders(item, placeholders) for item in obj]
+    return obj
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compose settings.json from base + guards + stack overlays")
     parser.add_argument("--base", required=True, help="Path to settings.base.json")
@@ -64,6 +115,9 @@ def main():
     parser.add_argument("--stacks", required=True, help="Comma-separated stack names")
     parser.add_argument("--stacks-dir", required=True, help="Path to stacks directory")
     parser.add_argument("--output", required=True, help="Output settings.json path")
+    parser.add_argument("--overrides", help="Path to workflow.overrides.yaml (optional)")
+    parser.add_argument("--claude-dir", help="Path to .claude dir for agent discovery (optional)")
+    parser.add_argument("--commands", help="Placeholder values as JSON string (optional)")
     args = parser.parse_args()
 
     # Load base
@@ -89,6 +143,29 @@ def main():
                 stack_guards = load_guards(stack_guards_dir)
                 overlay = resolve_guard_refs(overlay, stack_guards)
             settings = merge_hooks(settings, overlay)
+
+    # Merge project overrides from workflow.overrides.yaml
+    if args.overrides and os.path.exists(args.overrides):
+        try:
+            import yaml
+            with open(args.overrides) as f:
+                overrides = yaml.safe_load(f) or {}
+            overrides_settings = overrides.get("settings", {})
+            if overrides_settings:
+                settings = merge_overrides(settings, overrides_settings)
+        except ImportError:
+            pass
+
+    # Resolve placeholders
+    placeholders = {}
+    if args.commands:
+        placeholders = json.loads(args.commands)
+    if args.claude_dir:
+        agents = discover_agents(args.claude_dir)
+        if agents:
+            placeholders["AGENT_NAMES"] = "|".join(agents)
+    if placeholders:
+        settings = resolve_placeholders(settings, placeholders)
 
     # Write output
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)

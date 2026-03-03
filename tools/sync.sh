@@ -135,14 +135,10 @@ for s in stacks:
   done <<< "$MISSING_FILES"
 fi
 
-# Resolve {{PLACEHOLDER}} values in updated .md files
-if [[ $UPDATED -gt 0 ]]; then
-  echo ""
-  echo "Resolving placeholders..."
-  python3 -c "
-import os, yaml
+# Build commands JSON for placeholder resolution
+COMMANDS_JSON=$(python3 -c "
+import os, yaml, json
 
-claude_dir = '$CLAUDE_DIR'
 stacks = '$STACKS'.split(',')
 master_dir = '$MASTER_DIR'
 
@@ -162,6 +158,18 @@ for stack in stacks:
 
 commands['VERSION'] = '$VERSION'
 commands['STACKS'] = ', '.join(stacks)
+print(json.dumps(commands))
+")
+
+# Resolve {{PLACEHOLDER}} values in updated .md files
+if [[ $UPDATED -gt 0 ]]; then
+  echo ""
+  echo "Resolving placeholders..."
+  python3 -c "
+import os, json
+
+claude_dir = '$CLAUDE_DIR'
+commands = json.loads('$COMMANDS_JSON')
 
 for root, dirs, files in os.walk(claude_dir):
     for fname in files:
@@ -204,17 +212,18 @@ if [[ -n "$LOCAL_EDIT_FILES" ]]; then
   done <<< "$LOCAL_EDIT_FILES"
 fi
 
-# Recompose settings.json if any files were updated
-if [[ $UPDATED -gt 0 ]]; then
-  echo ""
-  echo "Recomposing settings.json..."
-  python3 "$MASTER_DIR/tools/compose_settings.py" \
-    --base "$MASTER_DIR/base/settings.base.json" \
-    --guards "$MASTER_DIR/base/guards" \
-    --stacks "$STACKS" \
-    --stacks-dir "$MASTER_DIR/stacks" \
-    --output "$CLAUDE_DIR/settings.json"
-fi
+# Recompose settings.json (always run to ensure overrides are applied)
+echo ""
+echo "Recomposing settings.json..."
+python3 "$MASTER_DIR/tools/compose_settings.py" \
+  --base "$MASTER_DIR/base/settings.base.json" \
+  --guards "$MASTER_DIR/base/guards" \
+  --stacks "$STACKS" \
+  --stacks-dir "$MASTER_DIR/stacks" \
+  --claude-dir "$CLAUDE_DIR" \
+  --overrides "$CLAUDE_DIR/workflow.overrides.yaml" \
+  --commands "$COMMANDS_JSON" \
+  --output "$CLAUDE_DIR/settings.json"
 
 # Update workflow.lock (reuse generate_lock.py for correct masterChecksums)
 echo "Updating workflow.lock..."

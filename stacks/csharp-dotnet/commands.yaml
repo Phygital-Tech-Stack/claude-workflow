@@ -1,0 +1,28 @@
+commands:
+  FORMAT_COMMAND: "dotnet format"
+  ANALYZE_COMMAND: "dotnet build --no-restore"
+  TEST_COMMAND: "dotnet test"
+  TEST_FILE_CONVENTION: "Tests/<Namespace>/<Name>Tests.cs"
+  BUILD_COMMAND: "dotnet build"
+
+classify_categories:
+  - Controllers (Controllers/)
+  - Services (Services/)
+  - Models (Models/)
+  - Data (Data/, Migrations/)
+  - Tests (Tests/)
+  - Config (*.csproj, appsettings.json)
+  - Docs (*.md)
+
+critical_files:
+  - "*.csproj"
+  - appsettings.json
+  - Program.cs
+  - Startup.cs
+
+code_extensions: ".cs,.csproj"
+
+auto_quick_patterns:
+  - "*Tests.cs"
+  - "*.md"
+  - "*.json"

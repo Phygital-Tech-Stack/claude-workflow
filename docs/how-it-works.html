@@ -1054,6 +1054,35 @@ local_matches_lock = local_hash == lock[<span class="str">"managed"</span>][rel_
     </div>
   </div>
 
+  <h3>Auto-Promote Flow</h3>
+  <p>
+    When the drift check detects <span class="status status-local">LOCAL-EDIT</span> files
+    in a project, it automatically opens a PR on claude-workflow with those changes.
+    This enables improvements made in any project to flow back to the master.
+  </p>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="step-num">1</div>
+      <div class="step-title">Detect</div>
+      <div class="step-detail">Drift check finds LOCAL-EDIT files with master source</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">2</div>
+      <div class="step-title">Branch</div>
+      <div class="step-detail">Create promote/&lt;project&gt;/&lt;hash&gt; on claude-workflow</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">3</div>
+      <div class="step-title">Copy</div>
+      <div class="step-detail">Map project files to base/ or stacks/ destinations</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">4</div>
+      <div class="step-title">PR</div>
+      <div class="step-detail">Open PR with file table and review checklist</div>
+    </div>
+  </div>
+
   <h3>Project Registry</h3>
   <p>
     The workflow uses a matrix strategy driven by <code>projects.json</code> to check all projects in parallel.

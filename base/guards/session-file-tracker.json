@@ -1,0 +1,8 @@
+{
+  "event": "PostToolUse",
+  "matcher": "Write|Edit",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys, os\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\nif not p or 'session-files' in p:\n    sys.exit(0)\nsid = d.get('session_id', 'unknown')\ncwd = os.getcwd()\nrel = os.path.relpath(p, cwd) if p.startswith(cwd) else p\ntf = os.path.join(cwd, '.claude', f'session-files-{sid}.txt')\nexisting = set()\nif os.path.exists(tf):\n    with open(tf) as f:\n        existing = set(l.strip() for l in f if l.strip())\nif rel not in existing:\n    os.makedirs(os.path.dirname(tf), exist_ok=True)\n    with open(tf, 'a') as f:\n        f.write(rel + '\\n')\nsys.exit(0)\n\""
+  }
+}

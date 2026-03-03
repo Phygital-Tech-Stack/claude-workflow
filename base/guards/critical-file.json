@@ -1,0 +1,11 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\ncritical = {{CRITICAL_FILES}}\nif any(c in p for c in critical):\n    print(json.dumps({'systemMessage': '[GUARD] Critical infrastructure file. Consider /validate-change after editing.'}))\nsys.exit(0)\n\"",
+    "_defaults": {
+      "CRITICAL_FILES": "['schema', 'migrations', 'pubspec.yaml', 'package.json']"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nskip = ['node_modules', '.claude/', 'test/', '.md']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\nviolations = []\nqf = re.search(r'//\\s*(hack|workaround|band-?aid|quick\\s*fix|temp(orary)?\\s*fix|hotfix)\\b', content, re.IGNORECASE)\nif qf:\n    violations.append(qf.group(0).strip())\ntd = re.search(r'//\\s*(TODO|FIXME):\\s*(fix later|investigate later|come back|revisit|temporary)\\b', content, re.IGNORECASE)\nif td:\n    violations.append(td.group(0).strip())\nif violations:\n    print(json.dumps({'decision': 'block', 'reason': '[ROOT-CAUSE] BLOCKED: Detected ' + violations[0] + '. Quick-fix markers are not allowed. Fix the root cause instead.'}))\n    sys.exit(2)\nsys.exit(0)\n\""
+  }
+}

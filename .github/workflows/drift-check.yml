@@ -6,6 +6,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   load-projects:
     runs-on: ubuntu-latest
@@ -58,7 +62,7 @@ jobs:
       - name: Auto-promote LOCAL-EDIT files
         if: contains(steps.drift.outputs.report, 'LOCAL-EDIT')
         env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 tools/auto_promote.py \
             --drift-json '${{ steps.drift.outputs.report }}' \

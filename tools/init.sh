@@ -78,12 +78,13 @@ for stack in "${STACK_ARRAY[@]}"; do
   fi
 done
 
-# 3. Process .mcp.json.template files from stacks
+# 3. Process .mcp.json.template files from stacks (preserve project-specific servers)
 echo "  Processing MCP templates..."
 python3 "$MASTER_DIR/tools/merge_mcp_templates.py" \
   --stacks "$STACKS" \
   --stacks-dir "$MASTER_DIR/stacks" \
-  --output "$PROJECT_DIR/.mcp.json" || true
+  --output "$PROJECT_DIR/.mcp.json" \
+  --preserve-existing || true
 
 # Add .mcp.json to .gitignore if not already present
 if [[ -f "$PROJECT_DIR/.gitignore" ]]; then
@@ -141,6 +142,10 @@ print(json.dumps(commands))
 ")
 
 echo "  Composing settings.json..."
+PRESERVE_ARGS=()
+if [[ -f "$CLAUDE_DIR/settings.json" ]]; then
+  PRESERVE_ARGS+=(--preserve-from "$CLAUDE_DIR/settings.json")
+fi
 python3 "$MASTER_DIR/tools/compose_settings.py" \
   --base "$MASTER_DIR/base/settings.base.json" \
   --guards "$MASTER_DIR/base/guards" \
@@ -149,7 +154,8 @@ python3 "$MASTER_DIR/tools/compose_settings.py" \
   --claude-dir "$CLAUDE_DIR" \
   --overrides "$CLAUDE_DIR/workflow.overrides.yaml" \
   --commands "$COMMANDS_JSON" \
-  --output "$CLAUDE_DIR/settings.json"
+  --output "$CLAUDE_DIR/settings.json" \
+  "${PRESERVE_ARGS[@]}"
 
 # 5. Generate workflow.lock
 

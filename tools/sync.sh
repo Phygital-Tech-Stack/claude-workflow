@@ -215,6 +215,10 @@ fi
 # Recompose settings.json (always run to ensure overrides are applied)
 echo ""
 echo "Recomposing settings.json..."
+PRESERVE_ARGS=()
+if [[ -f "$CLAUDE_DIR/settings.json" ]]; then
+  PRESERVE_ARGS+=(--preserve-from "$CLAUDE_DIR/settings.json")
+fi
 python3 "$MASTER_DIR/tools/compose_settings.py" \
   --base "$MASTER_DIR/base/settings.base.json" \
   --guards "$MASTER_DIR/base/guards" \
@@ -223,14 +227,16 @@ python3 "$MASTER_DIR/tools/compose_settings.py" \
   --claude-dir "$CLAUDE_DIR" \
   --overrides "$CLAUDE_DIR/workflow.overrides.yaml" \
   --commands "$COMMANDS_JSON" \
-  --output "$CLAUDE_DIR/settings.json"
+  --output "$CLAUDE_DIR/settings.json" \
+  "${PRESERVE_ARGS[@]}"
 
-# Re-process MCP templates
+# Re-process MCP templates (preserve project-specific servers)
 echo "Re-processing MCP templates..."
 python3 "$MASTER_DIR/tools/merge_mcp_templates.py" \
   --stacks "$STACKS" \
   --stacks-dir "$MASTER_DIR/stacks" \
-  --output "$PROJECT_DIR/.mcp.json" || true
+  --output "$PROJECT_DIR/.mcp.json" \
+  --preserve-existing || true
 
 # Update workflow.lock (reuse generate_lock.py for correct masterChecksums)
 echo "Updating workflow.lock..."

@@ -11,8 +11,12 @@ def main():
     parser.add_argument("--stacks", required=True, help="Comma-separated stack names")
     parser.add_argument("--stacks-dir", required=True, help="Path to stacks directory")
     parser.add_argument("--output", required=True, help="Output .mcp.json path")
+    parser.add_argument("--preserve-existing", action="store_true",
+                        help="Preserve project-specific servers from existing .mcp.json")
     args = parser.parse_args()
 
+    # Collect template server names to know which are master-managed
+    template_server_names = set()
     merged_servers = {}
     for stack in args.stacks.split(","):
         stack = stack.strip()
@@ -24,7 +28,16 @@ def main():
         with open(tmpl_path) as f:
             tmpl = json.load(f)
         for name, config in tmpl.get("mcpServers", {}).items():
+            template_server_names.add(name)
             merged_servers[name] = config
+
+    # Preserve project-specific servers from existing .mcp.json
+    if args.preserve_existing and os.path.exists(args.output):
+        with open(args.output) as f:
+            existing = json.load(f)
+        for name, config in existing.get("mcpServers", {}).items():
+            if name not in template_server_names:
+                merged_servers[name] = config
 
     if not merged_servers:
         sys.exit(0)

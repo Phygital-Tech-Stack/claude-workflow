@@ -126,6 +126,7 @@ def main():
     parser.add_argument("--overrides", help="Path to workflow.overrides.yaml (optional)")
     parser.add_argument("--claude-dir", help="Path to .claude dir for agent discovery (optional)")
     parser.add_argument("--commands", help="Placeholder values as JSON string (optional)")
+    parser.add_argument("--preserve-from", help="Existing settings.json to preserve permissions/enabledMcpjsonServers from")
     args = parser.parse_args()
 
     # Load base
@@ -151,6 +152,18 @@ def main():
                 stack_guards = load_guards(stack_guards_dir)
                 overlay = resolve_guard_refs(overlay, stack_guards)
             settings = merge_hooks(settings, overlay)
+
+    # Preserve project-specific permissions and enabledMcpjsonServers from existing settings
+    if args.preserve_from and os.path.exists(args.preserve_from):
+        with open(args.preserve_from) as f:
+            existing = json.load(f)
+        preserved = {}
+        if "permissions" in existing:
+            preserved["permissions"] = existing["permissions"]
+        if "enabledMcpjsonServers" in existing:
+            preserved["enabledMcpjsonServers"] = existing["enabledMcpjsonServers"]
+        if preserved:
+            settings = merge_overrides(settings, preserved)
 
     # Merge project overrides from workflow.overrides.yaml
     if args.overrides and os.path.exists(args.overrides):

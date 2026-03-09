@@ -19,6 +19,7 @@ model: opus
 4. **Produce a verdict** — end with PASS/FAIL table.
 5. **Validate only what changed** — scope checks to affected files.
 6. **No manual bypass** — quick mode is auto-detected, not user-selected.
+7. **Context budget**: If context usage is above 70%, run Layers 1-2 only (quick mode) and recommend `/commit` + new session for full validation.
 
 ## Process
 

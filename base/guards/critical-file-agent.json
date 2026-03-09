@@ -1,0 +1,8 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "agent",
+    "agent": "Review the proposed edit to this critical infrastructure file. Read the file and surrounding code to assess: (1) Is the change safe and backward-compatible? (2) Are there downstream consumers that could break? (3) Does the change require a migration or deployment step? Report findings as ALLOW (safe), WARN (needs attention), or BLOCK (unsafe)."
+  }
+}

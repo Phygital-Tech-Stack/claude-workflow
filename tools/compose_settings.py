@@ -27,14 +27,20 @@ def resolve_guard_refs(settings: dict, guards: dict) -> dict:
     for event_key, event_hooks in result.get("hooks", {}).items():
         for hook_group in event_hooks:
             for hook in hook_group.get("hooks", []):
-                cmd = hook.get("command", "")
-                if cmd.startswith("GUARD:"):
-                    guard_name = cmd.replace("GUARD:", "")
-                    if guard_name in guards:
-                        guard_def = guards[guard_name]
-                        hook["command"] = guard_def["hook"]["command"]
-                        if "timeout" in guard_def["hook"]:
-                            hook["timeout"] = guard_def["hook"]["timeout"]
+                # Check command, prompt, and agent fields for GUARD: refs
+                guard_ref = None
+                for field in ("command", "prompt", "agent"):
+                    val = hook.get(field, "")
+                    if val.startswith("GUARD:"):
+                        guard_ref = val.replace("GUARD:", "")
+                        break
+                if guard_ref and guard_ref in guards:
+                    guard_def = guards[guard_ref]
+                    # Copy all hook fields from guard definition
+                    # Supports command, prompt, and agent hook types
+                    resolved = copy.deepcopy(guard_def["hook"])
+                    hook.clear()
+                    hook.update(resolved)
     return result
 
 
@@ -82,7 +88,9 @@ def merge_overrides(settings: dict, overrides_settings: dict) -> dict:
                 result["permissions"] = {}
             for pkey, pval in val.items():
                 if isinstance(pval, list):
-                    result["permissions"].setdefault(pkey, []).extend(pval)
+                    existing = result["permissions"].setdefault(pkey, [])
+                    existing.extend(pval)
+                    result["permissions"][pkey] = list(dict.fromkeys(existing))
                 else:
                     result["permissions"][pkey] = pval
         elif key == "enabledMcpjsonServers" and isinstance(val, list):
@@ -154,7 +162,7 @@ def main():
             if overrides_settings:
                 settings = merge_overrides(settings, overrides_settings)
         except ImportError:
-            pass
+            print("WARNING: PyYAML not installed — skipping workflow.overrides.yaml", file=sys.stderr)
 
     # Resolve placeholders
     placeholders = {}

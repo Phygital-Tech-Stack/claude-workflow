@@ -387,6 +387,189 @@ def test_commands_placeholder_resolution():
         assert cmd == "run dart format", f"Placeholder not resolved: {cmd}"
 
 
+def test_prompt_type_guard_resolution():
+    """GUARD: references with type:prompt should resolve prompt field from guard JSON."""
+    with tempfile.TemporaryDirectory() as tmp:
+        base = {
+            "hooks": {
+                "PreToolUse": [
+                    {
+                        "matcher": "Edit|Write",
+                        "hooks": [{"type": "prompt", "prompt": "GUARD:my-prompt-guard"}],
+                    }
+                ]
+            }
+        }
+        base_path = os.path.join(tmp, "base.json")
+        with open(base_path, "w") as f:
+            json.dump(base, f)
+
+        guards_dir = os.path.join(tmp, "guards")
+        os.makedirs(guards_dir)
+        guard = {
+            "event": "PreToolUse",
+            "matcher": "Edit|Write",
+            "hook": {
+                "type": "prompt",
+                "prompt": "Check if this edit is safe. If not, warn the user.",
+            },
+        }
+        with open(os.path.join(guards_dir, "my-prompt-guard.json"), "w") as f:
+            json.dump(guard, f)
+
+        stacks_dir = os.path.join(tmp, "stacks")
+        os.makedirs(stacks_dir)
+
+        output = os.path.join(tmp, "output.json")
+        result = run_compose(base_path, guards_dir, "", stacks_dir, output)
+        assert result.returncode == 0, f"compose failed: {result.stderr}"
+
+        with open(output) as f:
+            settings = json.load(f)
+
+        hook = settings["hooks"]["PreToolUse"][0]["hooks"][0]
+        assert hook["type"] == "prompt", f"Type not prompt: {hook['type']}"
+        assert hook["prompt"] == "Check if this edit is safe. If not, warn the user.", (
+            f"Prompt not resolved: {hook.get('prompt')}"
+        )
+        assert "command" not in hook, f"command field should not be present: {hook}"
+
+
+def test_agent_type_guard_resolution():
+    """GUARD: references with type:agent should resolve agent field from guard JSON."""
+    with tempfile.TemporaryDirectory() as tmp:
+        base = {
+            "hooks": {
+                "PreToolUse": [
+                    {
+                        "matcher": "Edit|Write",
+                        "hooks": [{"type": "agent", "agent": "GUARD:my-agent-guard"}],
+                    }
+                ]
+            }
+        }
+        base_path = os.path.join(tmp, "base.json")
+        with open(base_path, "w") as f:
+            json.dump(base, f)
+
+        guards_dir = os.path.join(tmp, "guards")
+        os.makedirs(guards_dir)
+        guard = {
+            "event": "PreToolUse",
+            "matcher": "Edit|Write",
+            "hook": {
+                "type": "agent",
+                "agent": "Review this edit for safety and backward-compatibility.",
+            },
+        }
+        with open(os.path.join(guards_dir, "my-agent-guard.json"), "w") as f:
+            json.dump(guard, f)
+
+        stacks_dir = os.path.join(tmp, "stacks")
+        os.makedirs(stacks_dir)
+
+        output = os.path.join(tmp, "output.json")
+        result = run_compose(base_path, guards_dir, "", stacks_dir, output)
+        assert result.returncode == 0, f"compose failed: {result.stderr}"
+
+        with open(output) as f:
+            settings = json.load(f)
+
+        hook = settings["hooks"]["PreToolUse"][0]["hooks"][0]
+        assert hook["type"] == "agent", f"Type not agent: {hook['type']}"
+        assert hook["agent"] == "Review this edit for safety and backward-compatibility.", (
+            f"Agent not resolved: {hook.get('agent')}"
+        )
+        assert "command" not in hook, f"command field should not be present: {hook}"
+
+
+def test_overrides_permissions_dedup():
+    """Duplicate permissions from overrides should be deduplicated."""
+    with tempfile.TemporaryDirectory() as tmp:
+        base = {
+            "hooks": {},
+            "permissions": {"allow": ["Bash(git:*)", "Bash(npm:*)"]}
+        }
+        base_path = os.path.join(tmp, "base.json")
+        with open(base_path, "w") as f:
+            json.dump(base, f)
+
+        guards_dir = os.path.join(tmp, "guards")
+        os.makedirs(guards_dir)
+        stacks_dir = os.path.join(tmp, "stacks")
+        os.makedirs(stacks_dir)
+
+        overrides_path = os.path.join(tmp, "overrides.yaml")
+        with open(overrides_path, "w") as f:
+            f.write(
+                "settings:\n"
+                "  permissions:\n"
+                "    allow:\n"
+                '      - "Bash(git:*)"\n'
+                '      - "Bash(gh pr:*)"\n'
+            )
+
+        output = os.path.join(tmp, "output.json")
+        result = run_compose(base_path, guards_dir, "", stacks_dir, output,
+                             overrides=overrides_path)
+        assert result.returncode == 0, f"compose failed: {result.stderr}"
+
+        with open(output) as f:
+            settings = json.load(f)
+
+        allow = settings["permissions"]["allow"]
+        assert allow.count("Bash(git:*)") == 1, (
+            f"Duplicate permission not deduped: {allow}"
+        )
+        assert len(allow) == 3, f"Expected 3 unique permissions, got {len(allow)}: {allow}"
+
+
+def test_overrides_hooks_merge():
+    """Hooks from overrides should be appended to existing hooks."""
+    with tempfile.TemporaryDirectory() as tmp:
+        base = {
+            "hooks": {
+                "PreToolUse": [
+                    {"matcher": "Edit", "hooks": [{"type": "command", "command": "base-cmd"}]}
+                ]
+            }
+        }
+        base_path = os.path.join(tmp, "base.json")
+        with open(base_path, "w") as f:
+            json.dump(base, f)
+
+        guards_dir = os.path.join(tmp, "guards")
+        os.makedirs(guards_dir)
+        stacks_dir = os.path.join(tmp, "stacks")
+        os.makedirs(stacks_dir)
+
+        overrides_path = os.path.join(tmp, "overrides.yaml")
+        with open(overrides_path, "w") as f:
+            f.write(
+                "settings:\n"
+                "  hooks:\n"
+                "    PreToolUse:\n"
+                "      - matcher: Write\n"
+                "        hooks:\n"
+                "          - type: command\n"
+                "            command: override-cmd\n"
+            )
+
+        output = os.path.join(tmp, "output.json")
+        result = run_compose(base_path, guards_dir, "", stacks_dir, output,
+                             overrides=overrides_path)
+        assert result.returncode == 0, f"compose failed: {result.stderr}"
+
+        with open(output) as f:
+            settings = json.load(f)
+
+        groups = settings["hooks"]["PreToolUse"]
+        assert len(groups) == 2, f"Expected 2 PreToolUse groups, got {len(groups)}"
+        commands = [g["hooks"][0]["command"] for g in groups]
+        assert "base-cmd" in commands, f"Base hook lost: {commands}"
+        assert "override-cmd" in commands, f"Override hook missing: {commands}"
+
+
 if __name__ == "__main__":
     tests = [
         test_guard_resolution,
@@ -397,6 +580,10 @@ if __name__ == "__main__":
         test_overrides_permissions_merge,
         test_overrides_mcp_servers,
         test_commands_placeholder_resolution,
+        test_prompt_type_guard_resolution,
+        test_agent_type_guard_resolution,
+        test_overrides_permissions_dedup,
+        test_overrides_hooks_merge,
     ]
     passed = 0
     failed = 0

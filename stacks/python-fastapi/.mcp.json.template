@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "pharos": {
+      "type": "http",
+      "url": "https://mcp.phygital-tech.ai/pharos/mcp",
+      "headers": {
+        "Authorization": "Bearer {{PHAROS_TOKEN}}"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}

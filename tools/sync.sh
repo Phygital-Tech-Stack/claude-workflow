@@ -225,6 +225,13 @@ python3 "$MASTER_DIR/tools/compose_settings.py" \
   --commands "$COMMANDS_JSON" \
   --output "$CLAUDE_DIR/settings.json"
 
+# Re-process MCP templates
+echo "Re-processing MCP templates..."
+python3 "$MASTER_DIR/tools/merge_mcp_templates.py" \
+  --stacks "$STACKS" \
+  --stacks-dir "$MASTER_DIR/stacks" \
+  --output "$PROJECT_DIR/.mcp.json" || true
+
 # Update workflow.lock (reuse generate_lock.py for correct masterChecksums)
 echo "Updating workflow.lock..."
 python3 "$MASTER_DIR/tools/generate_lock.py" \
@@ -234,7 +241,7 @@ python3 "$MASTER_DIR/tools/generate_lock.py" \
   --stacks "$STACKS"
 
 echo ""
-echo "$UPDATED files updated, 0 files updated" | head -1 | sed "s/0 files updated/$UPDATED files updated/"
+echo "$UPDATED file(s) updated."
 if [[ $UPDATED -eq 0 ]] && [[ -z "$DIVERGED_FILES" ]] && [[ -z "$LOCAL_EDIT_FILES" ]]; then
   echo "Project is up to date with master v$VERSION."
 fi

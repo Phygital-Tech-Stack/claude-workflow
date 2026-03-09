@@ -1,0 +1,20 @@
+# Claude Code MR Review for GitLab CI
+# Add to your .gitlab-ci.yml or include as a template
+
+claude-review:
+  stage: review
+  image: node:20
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  variables:
+    ANTHROPIC_API_KEY: $ANTHROPIC_API_KEY
+  script:
+    - npx -y @anthropic-ai/claude-code --print "
+        You are the code-reviewer agent. Review this MR against the project's
+        coding-conventions.md and testing-patterns.md blueprints.
+        Read .claude/blueprints/coding-conventions.md and testing-patterns.md.
+        Review all changed files. Report violations using severity tiers:
+        BLOCK (must fix), WARN (should fix), INFO (suggestion).
+        Focus on: missing tests, security concerns, convention violations.
+      "
+  allow_failure: true

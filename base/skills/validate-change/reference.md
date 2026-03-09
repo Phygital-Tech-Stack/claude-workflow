@@ -37,6 +37,15 @@ When shared files change, identify all consumers and verify they still compile/p
 - Schema/migration changed → verify generated code is current
 - Config changed → verify all components still start
 
+### Visual Verification (flutter-dart only)
+
+When UI files (widgets, screens, pages) are changed in a flutter-dart stack:
+1. Take a screenshot: `{{SCREENSHOT_COMMAND}}`
+2. Compare against baseline in `docs/screenshots/` if available
+3. Flag visual regressions for human review (Layer 5)
+
+**Convention**: Baseline screenshots live in `docs/screenshots/`, named after the screen/component. Updated by developers after intentional design changes, not by Claude automatically.
+
 ## Layer 3: Security — Full Commands
 
 ### Secret Scanning

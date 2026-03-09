@@ -1,0 +1,8 @@
+{
+  "event": "PreToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "prompt",
+    "prompt": "Based on the current task context, estimate how many files this change is likely to touch. If the change implies modifications to more than 5 files (high blast radius), warn: '[GUARD] High blast radius — consider running /brainstorm first to plan the approach.' If the scope is contained, allow silently."
+  }
+}

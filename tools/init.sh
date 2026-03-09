@@ -4,6 +4,7 @@ set -euo pipefail
 # Parse arguments
 PROJECT_DIR=""
 STACKS=""
+CI_ENABLED=false
 MASTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION=$(python3 -c "import json; print(json.load(open('$MASTER_DIR/version.json'))['version'])")
 
@@ -13,12 +14,13 @@ while [[ $# -gt 0 ]]; do
     --stacks) STACKS="$2"; shift 2 ;;
     --master) MASTER_DIR="$2"; shift 2 ;;
     --version) VERSION="$2"; shift 2 ;;
+    --ci) CI_ENABLED=true; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
 
 if [[ -z "$PROJECT_DIR" || -z "$STACKS" ]]; then
-  echo "Usage: init.sh --project <path> --stacks <stack1,stack2>"
+  echo "Usage: init.sh --project <path> --stacks <stack1,stack2> [--ci]"
   exit 1
 fi
 
@@ -76,7 +78,21 @@ for stack in "${STACK_ARRAY[@]}"; do
   fi
 done
 
-# 3. Resolve {{PLACEHOLDER}} values from commands.yaml
+# 3. Process .mcp.json.template files from stacks
+echo "  Processing MCP templates..."
+python3 "$MASTER_DIR/tools/merge_mcp_templates.py" \
+  --stacks "$STACKS" \
+  --stacks-dir "$MASTER_DIR/stacks" \
+  --output "$PROJECT_DIR/.mcp.json" || true
+
+# Add .mcp.json to .gitignore if not already present
+if [[ -f "$PROJECT_DIR/.gitignore" ]]; then
+  if ! grep -q "^\.mcp\.json$" "$PROJECT_DIR/.gitignore" 2>/dev/null; then
+    echo ".mcp.json" >> "$PROJECT_DIR/.gitignore"
+  fi
+fi
+
+# 4. Resolve {{PLACEHOLDER}} values from commands.yaml
 echo "  Resolving placeholders..."
 COMMANDS_JSON=$(python3 -c "
 import os, yaml, json, sys
@@ -135,7 +151,7 @@ python3 "$MASTER_DIR/tools/compose_settings.py" \
   --commands "$COMMANDS_JSON" \
   --output "$CLAUDE_DIR/settings.json"
 
-# 4. Generate workflow.lock
+# 5. Generate workflow.lock
 
 echo "  Generating workflow.lock..."
 python3 "$MASTER_DIR/tools/generate_lock.py" \
@@ -144,10 +160,13 @@ python3 "$MASTER_DIR/tools/generate_lock.py" \
   --version "$VERSION" \
   --stacks "$STACKS"
 
-# 5. Generate workflow.overrides.yaml
+# 6. Generate workflow.overrides.yaml
 
-echo "  Generating workflow.overrides.yaml..."
-cat > "$CLAUDE_DIR/workflow.overrides.yaml" << EOF
+if [[ -f "$CLAUDE_DIR/workflow.overrides.yaml" ]]; then
+  echo "  Keeping existing workflow.overrides.yaml (already exists)"
+else
+  echo "  Generating workflow.overrides.yaml..."
+  cat > "$CLAUDE_DIR/workflow.overrides.yaml" << EOF
 # Claude Workflow Overrides
 # See: https://github.com/Phygital-Tech-Stack/claude-workflow
 
@@ -173,6 +192,28 @@ exclude: []
 #       ### Project-Specific Conventions
 #       - Add your conventions here
 EOF
+fi
+
+# 7. Install CI templates if --ci flag was passed
+if [[ "$CI_ENABLED" == "true" ]]; then
+  echo "  Installing CI templates..."
+  # Detect platform from git remote
+  GIT_REMOTE=$(git -C "$PROJECT_DIR" remote get-url origin 2>/dev/null || echo "")
+  if echo "$GIT_REMOTE" | grep -q "github.com"; then
+    mkdir -p "$PROJECT_DIR/.github/workflows"
+    cp "$MASTER_DIR/templates/github-actions/claude-pr-review.yml" \
+       "$PROJECT_DIR/.github/workflows/claude-pr-review.yml"
+    echo "    Installed GitHub Actions workflow: .github/workflows/claude-pr-review.yml"
+    echo "    IMPORTANT: Add ANTHROPIC_API_KEY to repository secrets"
+  elif echo "$GIT_REMOTE" | grep -q "gitlab"; then
+    cp "$MASTER_DIR/templates/gitlab/claude-mr-review.yml" \
+       "$PROJECT_DIR/.gitlab-ci-claude.yml"
+    echo "    Installed GitLab CI template: .gitlab-ci-claude.yml"
+    echo "    Include it in your .gitlab-ci.yml and add ANTHROPIC_API_KEY variable"
+  else
+    echo "    WARNING: Could not detect platform. Copy CI template manually from templates/"
+  fi
+fi
 
 echo ""
 echo "Done! Next steps:"

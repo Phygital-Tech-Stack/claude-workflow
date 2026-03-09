@@ -12,6 +12,14 @@
       {
         "matcher": "Edit|Write",
         "hooks": [{ "type": "command", "command": "GUARD:prompt-injection" }]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "prompt", "prompt": "GUARD:critical-file" }]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "prompt", "prompt": "GUARD:scope-estimator" }]
       }
     ],
     "PostToolUse": [
@@ -56,6 +64,19 @@
     "TeammateIdle": [
       {
         "hooks": [{ "type": "command", "command": ".claude/hooks/teammate-idle.sh" }]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": ".claude/hooks/prompt-submit.sh" },
+          { "type": "command", "command": ".claude/hooks/context-check.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [{ "type": "command", "command": ".claude/hooks/stop-gate.sh" }]
       }
     ]
   }

@@ -49,6 +49,7 @@ Before asking questions: read relevant CLAUDE.md files, search codebase for rela
 
 - **Never write implementation code** — design doc only. Use plan mode for implementation.
 - **Small idea?** Skip brainstorming — just use plan mode or implement directly.
+- **Context budget**: If context usage is above 60%, recommend parking the design doc and continuing in a new session rather than spawning the full 6-phase process.
 
 ## Related Skills
 

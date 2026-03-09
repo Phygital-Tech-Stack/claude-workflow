@@ -1,0 +1,40 @@
+name: Claude Code Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+
+jobs:
+  review:
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            You are the code-reviewer agent. Review this PR against the project's
+            coding-conventions.md and testing-patterns.md blueprints.
+
+            Steps:
+            1. Read .claude/blueprints/coding-conventions.md and testing-patterns.md
+            2. Review all changed files against conventions
+            3. Check for missing tests, security concerns, and convention violations
+            4. Auto-fix safe issues (formatting, obvious lint)
+            5. Report complex issues as PR review comments
+
+            Use severity tiers: BLOCK (must fix), WARN (should fix), INFO (suggestion).

@@ -23,18 +23,46 @@ Quick Change (config, docs, minor fix)
 
 ### Agents
 
-| Agent | Purpose |
-|-------|---------|
-| **code-reviewer** | Full-stack code review: auto-fix safe issues, report complex ones |
+| Agent | Purpose | Model | Read-only? |
+|-------|---------|-------|------------|
+| **code-reviewer** | Full-stack code review: auto-fix safe issues, report complex ones | opus | No |
+| **planner** | Break complex features into parallelizable tasks | opus | Yes |
+| **backend-handler** | Implement backend API modules | sonnet | No |
+| **frontend-handler** | Implement frontend components and screens | sonnet | No |
+| **test-writer** | Write comprehensive tests for implemented features | sonnet | No |
+| **security-reviewer** | Security-focused review, OWASP compliance | opus | Yes |
+| **db-expert** | Database schema review and migration guidance | sonnet | Yes |
 
-> Projects add domain-specific agents (security-reviewer, database-expert, etc.) in `.claude/agents/`.
+### Agent Orchestration
 
-<!-- PROJECT: Add your project-specific agents here. Example:
-| Agent | Purpose | Model | Tools |
-|-------|---------|-------|-------|
-| `planner` | Complex feature planning | sonnet | Read, Grep, Glob |
-| `backend-handler` | Backend handler implementation | sonnet | Read, Grep, Glob, Edit, Bash |
--->
+For complex features, the orchestrator (Claude) coordinates specialist agents:
+
+```
+Orchestrator (Claude)
+  ├── Phase 1: planner → implementation plan with task graph
+  ├── Phase 2 (parallel):
+  │     ├── backend-handler → implements API layer
+  │     ├── frontend-handler → implements UI components
+  │     └── test-writer → writes tests
+  ├── Phase 3 (parallel):
+  │     ├── security-reviewer → security audit
+  │     └── code-reviewer → convention audit
+  └── Phase 4: Orchestrator merges findings → /commit
+```
+
+**When to use parallel vs sequential:**
+
+| Criteria | Use Parallel | Use Sequential |
+|----------|-------------|----------------|
+| Tasks share no files | Yes | — |
+| Task B reads Task A's output | — | Yes |
+| Agents are read-only | Yes | — |
+| Tight coupling between components | — | Yes |
+| Large feature (>5 files) | Yes | — |
+
+> Projects can exclude unused agents via `workflow.overrides.yaml` → `exclude`.
+
+<!-- PROJECT: Add project-specific agents here. -->
 
 ### Core Skills
 
@@ -57,12 +85,17 @@ Quick Change (config, docs, minor fix)
 
 ### Auto-Triggered Guards (PreToolUse)
 
-| Guard | Severity | Action |
-|-------|----------|--------|
-| **Env/secrets guard** | Advisory | Warns on credentials/config files |
-| **Critical file guard** | Advisory | Warns on schema/migrations/infrastructure files |
-| **Quick-fix blocker** | **Blocker** | Blocks hack/workaround/temp-fix comments |
-| **Prompt injection detector** | Advisory | Warns on injection patterns (OWASP ASI01) |
+| Guard | Type | Severity | Action |
+|-------|------|----------|--------|
+| **Env/secrets guard** | command | Advisory | Warns on credentials/config files |
+| **Critical file guard** | prompt | Advisory | LLM judges if file is critical infrastructure |
+| **Quick-fix blocker** | command | **Blocker** | Blocks hack/workaround/temp-fix comments |
+| **Prompt injection detector** | command | Advisory | Warns on injection patterns (OWASP ASI01) |
+| **Scope estimator** | prompt | Advisory | LLM warns on high blast radius changes (>5 files) |
+
+**Hook types**: `command` — deterministic shell/Python checks. `prompt` — LLM judgment without file access. `agent` — LLM with codebase read access (opt-in via stack overlays, heavy).
+
+> The `critical-file-agent` guard (type: agent) is available in `base/guards/` but not enabled by default due to performance cost. Stacks can opt in via their `settings.overlay.json`.
 
 ### PostToolUse Hooks
 
@@ -82,11 +115,13 @@ Quick Change (config, docs, minor fix)
 | Hook | Event Type | Purpose |
 |------|------------|---------|
 | **Session start** | SessionStart | Load progress context, inject git state, clean stale sessions |
+| **Prompt submit** | UserPromptSubmit | Inject git branch/commit, active progress, warn on dangerous patterns |
 | **Pre-compact** | PreCompact | Log compaction events for debugging |
 | **Subagent context** | SubagentStart | Inject project rules and agent memory into specialist agents |
 | **Task completed** | TaskCompleted | Count modified code files, remind to validate |
 | **Failure handler** | PostToolUseFailure | Pattern-match errors, suggest recovery actions |
 | **Teammate idle** | TeammateIdle | Check for active plans with remaining work |
+| **Stop gate** | Stop | Warn if code files modified but not validated or committed |
 
 ### Blueprints
 
@@ -106,20 +141,24 @@ Deep-reference documents in `.claude/blueprints/` used by skills as authoritativ
 Session Start                    Active Development                    Session End
      |                                  |                                  |
      v                                  v                                  v
-[SessionStart hook]             [PostToolUse hooks]                  [/commit skill]
-  - Read progress files          - Track files in session-files.txt   - Read session-files.txt
-  - Extract "Next Session        - Auto-validate source files         - Stage tracked files
-    Should" items                - Guard patterns & sizes             - Write progress file
-  - Inject git branch +                                               - Clean session state
-    last 3 commits
-  - Clean stale session files
-     |                                  |
-     v                                  v
-[SubagentStart hook]            [PreToolUse guards]
-  - Inject project rules         - Guard secrets/env files
-  - Load agent MEMORY.md         - Guard critical infra files
-                                 - Block quick-fix markers
-                                 - Detect prompt injection
+[SessionStart hook]             [PostToolUse hooks]                  [Stop hook]
+  - Read progress files          - Track files in session-files.txt   - Check for unvalidated code
+  - Extract "Next Session        - Auto-validate source files         - Warn on uncommitted changes
+    Should" items                - Guard patterns & sizes
+  - Inject git branch +                                                    |
+    last 3 commits                                                         v
+  - Clean stale session files                                        [/commit skill]
+     |                                  |                              - Read session-files.txt
+     v                                  v                              - Stage tracked files
+[UserPromptSubmit hook]         [PreToolUse guards]                    - Write progress file
+  - Inject git branch/commit     - Guard secrets/env files             - Clean session state
+  - Flag active progress         - Guard critical infra (prompt)
+  - Warn on dangerous patterns   - Block quick-fix markers
+     |                           - Detect prompt injection
+     v                           - Estimate change scope (prompt)
+[SubagentStart hook]
+  - Inject project rules
+  - Load agent MEMORY.md
 ```
 
 ### Session File Tracking
@@ -135,6 +174,18 @@ Session files are auto-cleaned after 7 days by the SessionStart hook.
 
 Persistent learning files live in `.claude/agent-memory/{agent}/MEMORY.md`. Agents receive their memory at spawn via the SubagentStart hook and should update it when discovering new patterns.
 
+### Auto-Memory vs Agent-Memory
+
+Claude Code maintains auto-memory (in `~/.claude/projects/` per project) that captures build commands, debugging insights, and codebase patterns automatically. This is separate from the workflow's managed agent-memory.
+
+| Memory Type | Source | Reviewed? | Best For |
+|-------------|--------|-----------|----------|
+| **Agent MEMORY.md** | Claude (curated) | Human-reviewable | Persistent agent-specific learnings |
+| **Auto-memory** | Claude (automatic) | Not reviewed | Build commands, debug insights, patterns |
+| **Progress files** | Claude (structured) | Human-reviewable | Session handoff, next steps |
+
+**Policy**: Auto-memory supplements but does not replace agent-memory. If auto-memory contradicts agent-memory, agent-memory wins (it's curated). Do not manually edit auto-memory files — they are Claude Code-managed. Do manually curate `.claude/agent-memory/*/MEMORY.md`.
+
 ### Compaction Resilience
 
 These artifacts persist outside the conversation context and survive compression:
@@ -143,6 +194,38 @@ These artifacts persist outside the conversation context and survive compression
 - `.claude/agent-memory/*/MEMORY.md` — agent learning
 - `.claude/session-files-*.txt` — current session file tracking
 - `docs/plans/3-in-progress/*-progress.md` — active plan progress
+
+## Context Window Management
+
+Context fills fast, and performance degrades as it fills. The `context-check.sh` hook monitors usage automatically.
+
+### Compact Trigger Thresholds
+
+| Context Usage | Action |
+|--------------|--------|
+| **>60%** | Consider `/compact` before starting a new feature |
+| **>80%** | `/compact` before running `/validate-change` (results degrade otherwise) |
+| **>90%** | **Mandatory** `/compact` — do not commit from this state |
+
+### Session Scope
+
+One session = one logical unit of work. For large features:
+1. Break into steps via plan mode
+2. Complete one step per session
+3. `/commit` progress, write progress file with "Next Session Should" items
+4. Start a fresh session for the next step
+
+### Pre-Compact Checklist
+
+Before compacting (or when context is high):
+1. Update progress file with current state
+2. `/commit` if there are working changes
+3. Log key decisions to `.claude/decisions.log`
+
+### Token-Heavy Operations
+
+- `/brainstorm` — spawns multi-phase analysis. If context >60%, consider parking the design doc and continuing in a new session.
+- `/validate-change` Layer 4 (agentic) — spawns sub-agent. If context >70%, use `--quick` mode (Layers 1-2 only).
 
 ## Detailed Workflows
 
@@ -268,26 +351,66 @@ Files listed in `workflow.overrides.yaml` → `exclude` are project-owned and ne
 
 ## Tool Integrations
 
-<!-- PROJECT: Document all external tools used by the AI development system. Example:
-
 ### MCP Servers (`.mcp.json`)
 
-| Server | Package | Domain | Trust | Access |
-|--------|---------|--------|-------|--------|
-| `context7` | `@upstash/context7-mcp` | Documentation lookup | High | Read-only |
+MCP templates are per-stack in `stacks/{stack}/.mcp.json.template`. `init.sh` merges templates from all selected stacks and resolves tokens from environment variables.
+
+| Server | Stacks | Domain | Access |
+|--------|--------|--------|--------|
+| **pharos** | typescript-nestjs, python-fastapi | SYSPRO, Tempo MRP, PhX — live schema, KPI dashboards | Read/Write |
+| **context7** | all | Up-to-date documentation lookup for NestJS, FastAPI, Flutter, .NET | Read-only |
+| **github** | typescript-nestjs | PR context, issue details during code review | Read-only |
+
+**Setup**: Set `PHAROS_TOKEN` and `GITHUB_TOKEN` environment variables before running `init.sh`. The generated `.mcp.json` is gitignored (contains tokens).
 
 ### CLI Tools (via Bash allowlist)
 
 | Tool | Domain | Used By | Permission |
 |------|--------|---------|------------|
-| `dart format` | Code formatting | `dart_format.py` hook, `/commit` | Auto-allowed |
+| `git` | Version control | All hooks, `/commit` | Auto-allowed |
+| Stack formatter | Code formatting | PostToolUse hooks | Auto-allowed |
+| Stack analyzer | Static analysis | PostToolUse hooks, `/validate-change` | Auto-allowed |
+| Stack test runner | Testing | `/tdd`, `/validate-change` | Auto-allowed |
 
-### Hook Summary
+### Visual Verification (flutter-dart)
 
-Total integrations: N MCP servers + N CLI tools + N hooks = N tool integrations
--->
+For UI work in Flutter, use the Chrome extension or DevTools MCP for screenshot-based verification:
+
+```
+Edit widget → Hot reload → Screenshot → Compare to baseline → Iterate
+```
+
+Baseline screenshots live in `docs/screenshots/`, named after the screen/component. `/validate-change` Layer 2 includes a visual check step for flutter-dart stacks.
+
+<!-- PROJECT: Add project-specific CLI tools here. -->
 
 > Projects should document their full tool inventory here for audit and onboarding purposes.
+
+## CI/CD Integration
+
+Claude Code can review PRs automatically via GitHub Actions or GitLab CI.
+
+### Setup
+
+1. Run `init.sh --ci` to install the CI template for your platform
+2. Add `ANTHROPIC_API_KEY` to your repository secrets
+3. Set `ci_enabled: true` in projects.json for tracking
+
+### Available Templates
+
+| Template | Platform | Trigger |
+|----------|----------|---------|
+| `claude-pr-review.yml` | GitHub Actions | PR opened/updated, `@claude` comment |
+| `claude-mr-review.yml` | GitLab CI | MR pipeline |
+
+### What CI Review Does
+
+1. Reads project blueprints (coding-conventions.md, testing-patterns.md)
+2. Reviews changed files against conventions
+3. Checks for missing tests, security concerns
+4. Posts review comments with BLOCK/WARN/INFO severity
+
+> **Note**: CI review complements local `/validate-change` — it catches issues from PRs opened outside the workflow.
 
 ## Reference
 

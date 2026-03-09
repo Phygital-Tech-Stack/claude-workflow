@@ -3,11 +3,11 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/ruff_format.sh", "timeout": 15000 }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/ruff_format.sh", "timeout": 15 }]
       },
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/mypy_check.sh", "timeout": 30000 }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/mypy_check.sh", "timeout": 30 }]
       }
     ]
   }

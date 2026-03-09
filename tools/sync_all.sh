@@ -246,6 +246,15 @@ process_project() {
         --master "$MASTER_DIR"
       ;;
     3-erp)
+      # Save original settings.json BEFORE init.sh runs.
+      # init.sh composes fresh settings and merges project hooks via --preserve-from.
+      # The re-compose below needs the ORIGINAL (pre-init) settings to avoid
+      # double-appending project hooks that init.sh already merged.
+      local original_settings=""
+      if [[ -f "$project_dir/.claude/settings.json" ]]; then
+        original_settings=$(mktemp)
+        cp "$project_dir/.claude/settings.json" "$original_settings"
+      fi
       echo "  Running init.sh (Tier 3: erp special case)..."
       "$MASTER_DIR/tools/init.sh" \
         --project "$project_dir" \
@@ -262,6 +271,8 @@ process_project() {
         .claude/agents/code-reviewer.md \
         2>/dev/null || true)
       # Re-compose settings with overrides applied
+      # Uses the ORIGINAL settings.json (saved before init.sh) for --preserve-from
+      # so project-specific inline hooks are preserved exactly once.
       echo "  Re-composing settings.json with overrides..."
       local commands_json
       commands_json=$(python3 -c "
@@ -285,8 +296,8 @@ commands['STACKS'] = ', '.join(stacks)
 print(json.dumps(commands))
 ")
       local preserve_args=()
-      if [[ -f "$project_dir/.claude/settings.json" ]]; then
-        preserve_args+=(--preserve-from "$project_dir/.claude/settings.json")
+      if [[ -n "$original_settings" ]]; then
+        preserve_args+=(--preserve-from "$original_settings")
       fi
       python3 "$MASTER_DIR/tools/compose_settings.py" \
         --base "$MASTER_DIR/base/settings.base.json" \
@@ -298,6 +309,8 @@ print(json.dumps(commands))
         --commands "$commands_json" \
         --output "$project_dir/.claude/settings.json" \
         "${preserve_args[@]}"
+      # Clean up temp file
+      [[ -n "$original_settings" ]] && rm -f "$original_settings"
       # Regenerate lock with overrides in place
       python3 "$MASTER_DIR/tools/generate_lock.py" \
         --claude-dir "$project_dir/.claude" \

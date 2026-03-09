@@ -61,7 +61,12 @@ def main():
     master_checksums = {}
 
     for root, dirs, files in os.walk(claude_dir):
+        # Skip __pycache__ and other non-content directories
+        dirs[:] = [d for d in dirs if d != "__pycache__"]
         for fname in files:
+            # Skip compiled/cache files
+            if fname.endswith((".pyc", ".pyo")):
+                continue
             full = os.path.join(root, fname)
             rel = os.path.relpath(full, claude_dir)
             # Skip project-owned files

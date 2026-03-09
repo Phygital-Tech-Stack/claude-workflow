@@ -229,6 +229,15 @@ process_project() {
     return 1
   }
 
+  # Save original settings.json before any sync/init modifies it.
+  # Used by validate_sync.py to detect lost permissions/MCP servers,
+  # and by Tier 3 re-compose to avoid duplicating inline hooks.
+  local original_settings=""
+  if [[ -f "$project_dir/.claude/settings.json" ]]; then
+    original_settings=$(mktemp)
+    cp "$project_dir/.claude/settings.json" "$original_settings"
+  fi
+
   # Run appropriate tool
   echo "  Tier: $tier"
 
@@ -248,15 +257,6 @@ process_project() {
         --master "$MASTER_DIR"
       ;;
     3-erp)
-      # Save original settings.json BEFORE init.sh runs.
-      # init.sh composes fresh settings and merges project hooks via --preserve-from.
-      # The re-compose below needs the ORIGINAL (pre-init) settings to avoid
-      # double-appending project hooks that init.sh already merged.
-      local original_settings=""
-      if [[ -f "$project_dir/.claude/settings.json" ]]; then
-        original_settings=$(mktemp)
-        cp "$project_dir/.claude/settings.json" "$original_settings"
-      fi
       echo "  Running init.sh (Tier 3: erp special case)..."
       "$MASTER_DIR/tools/init.sh" \
         --project "$project_dir" \
@@ -311,8 +311,6 @@ print(json.dumps(commands))
         --commands "$commands_json" \
         --output "$project_dir/.claude/settings.json" \
         "${preserve_args[@]}"
-      # Clean up temp file
-      [[ -n "$original_settings" ]] && rm -f "$original_settings"
       # Regenerate lock with overrides in place
       python3 "$MASTER_DIR/tools/generate_lock.py" \
         --claude-dir "$project_dir/.claude" \
@@ -342,8 +340,29 @@ print(json.dumps(commands))
     echo "  No changes detected — skipping"
     git checkout "$default_branch" 2>/dev/null || git checkout main 2>/dev/null
     git branch -D "$BRANCH" 2>/dev/null || true
+    [[ -n "$original_settings" ]] && rm -f "$original_settings"
     return 2  # Signal: skipped
   fi
+
+  # Validate before committing
+  echo "  Running post-sync validation..."
+  local validate_args=(
+    --claude-dir "$project_dir/.claude"
+    --expected-version "$VERSION"
+  )
+  if [[ -n "$original_settings" ]]; then
+    validate_args+=(--original-settings "$original_settings")
+  fi
+  if ! python3 "$MASTER_DIR/tools/validate_sync.py" "${validate_args[@]}"; then
+    echo "  VALIDATION FAILED — aborting sync for $name"
+    git checkout "$default_branch" 2>/dev/null || git checkout main 2>/dev/null
+    git branch -D "$BRANCH" 2>/dev/null || true
+    [[ -n "$original_settings" ]] && rm -f "$original_settings"
+    return 1
+  fi
+
+  # Clean up original settings temp file
+  [[ -n "$original_settings" ]] && rm -f "$original_settings"
 
   # Commit
   echo "  Staging and committing..."

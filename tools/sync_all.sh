@@ -214,6 +214,8 @@ process_project() {
   cd "$project_dir"
   local default_branch
   default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
+  # Stash any uncommitted changes to allow branch switching
+  git stash -q 2>/dev/null || true
   git checkout "$default_branch" 2>/dev/null || git checkout main 2>/dev/null || git checkout master 2>/dev/null
   git pull --ff-only 2>/dev/null || true
 
@@ -345,6 +347,8 @@ print(json.dumps(commands))
 
   # Commit
   echo "  Staging and committing..."
+  # Ensure all .sh hooks are executable before staging
+  chmod +x "$project_dir/.claude/hooks/"*.sh 2>/dev/null || true
   git add .claude/
   # Untrack .mcp.json if it was previously tracked (contains credentials)
   if git ls-files --error-unmatch .mcp.json 2>/dev/null; then

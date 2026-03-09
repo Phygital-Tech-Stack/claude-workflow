@@ -81,21 +81,10 @@ if [[ -n "$BEHIND_FILES" ]]; then
     [[ -z "$file" ]] && continue
     echo "  Updating: $file"
     SOURCE=$(python3 -c "
-import os, sys
-master='$MASTER_DIR'; rel='$file'; stacks='$STACKS'.split(',')
-# Check base
-p = os.path.join(master, 'base', rel)
-if os.path.exists(p): print(p); sys.exit(0)
-# Check stacks
-for s in stacks:
-    p = os.path.join(master, 'stacks', s, rel)
-    if os.path.exists(p): print(p); sys.exit(0)
-    if rel.startswith('hooks/'):
-        hr = rel[len('hooks/'):]
-        p = os.path.join(master, 'stacks', s, 'hooks', hr)
-        if os.path.exists(p): print(p); sys.exit(0)
-        p = os.path.join(master, 'stacks', s, 'failure-patterns', hr.replace('failure-patterns/', ''))
-        if os.path.exists(p): print(p); sys.exit(0)
+import sys; sys.path.insert(0, '$MASTER_DIR/tools')
+from workflow_utils import find_master_source
+r = find_master_source('$MASTER_DIR', '$file', '$STACKS'.split(','))
+if r: print(r)
 ")
     if [[ -n "$SOURCE" ]]; then
       mkdir -p "$(dirname "$CLAUDE_DIR/$file")"
@@ -115,19 +104,10 @@ if [[ -n "$MISSING_FILES" ]]; then
     [[ -z "$file" ]] && continue
     echo "  Restoring: $file"
     SOURCE=$(python3 -c "
-import os, sys
-master='$MASTER_DIR'; rel='$file'; stacks='$STACKS'.split(',')
-p = os.path.join(master, 'base', rel)
-if os.path.exists(p): print(p); sys.exit(0)
-for s in stacks:
-    p = os.path.join(master, 'stacks', s, rel)
-    if os.path.exists(p): print(p); sys.exit(0)
-    if rel.startswith('hooks/'):
-        hr = rel[len('hooks/'):]
-        p = os.path.join(master, 'stacks', s, 'hooks', hr)
-        if os.path.exists(p): print(p); sys.exit(0)
-        p = os.path.join(master, 'stacks', s, 'failure-patterns', hr.replace('failure-patterns/', ''))
-        if os.path.exists(p): print(p); sys.exit(0)
+import sys; sys.path.insert(0, '$MASTER_DIR/tools')
+from workflow_utils import find_master_source
+r = find_master_source('$MASTER_DIR', '$file', '$STACKS'.split(','))
+if r: print(r)
 ")
     if [[ -n "$SOURCE" ]]; then
       mkdir -p "$(dirname "$CLAUDE_DIR/$file")"
@@ -222,21 +202,10 @@ if [[ -n "$NEW_FILES" ]]; then
     [[ -z "$file" ]] && continue
     echo "  Adding: $file"
     SOURCE=$(python3 -c "
-import os, sys
-master='$MASTER_DIR'; rel='$file'; stacks='$STACKS'.split(',')
-# Check base
-p = os.path.join(master, 'base', rel)
-if os.path.exists(p): print(p); sys.exit(0)
-# Check stacks
-for s in stacks:
-    p = os.path.join(master, 'stacks', s, rel)
-    if os.path.exists(p): print(p); sys.exit(0)
-    if rel.startswith('hooks/'):
-        hr = rel[len('hooks/'):]
-        p = os.path.join(master, 'stacks', s, 'hooks', hr)
-        if os.path.exists(p): print(p); sys.exit(0)
-        p = os.path.join(master, 'stacks', s, 'failure-patterns', hr.replace('failure-patterns/', ''))
-        if os.path.exists(p): print(p); sys.exit(0)
+import sys; sys.path.insert(0, '$MASTER_DIR/tools')
+from workflow_utils import find_master_source
+r = find_master_source('$MASTER_DIR', '$file', '$STACKS'.split(','))
+if r: print(r)
 ")
     if [[ -n "$SOURCE" ]]; then
       mkdir -p "$(dirname "$CLAUDE_DIR/$file")"
@@ -252,28 +221,9 @@ fi
 
 # Build commands JSON for placeholder resolution
 COMMANDS_JSON=$(python3 -c "
-import os, yaml, json
-
-stacks = '$STACKS'.split(',')
-master_dir = '$MASTER_DIR'
-
-commands = {}
-for stack in stacks:
-    cmd_path = os.path.join(master_dir, 'stacks', stack.strip(), 'commands.yaml')
-    if os.path.exists(cmd_path):
-        with open(cmd_path) as f:
-            data = yaml.safe_load(f) or {}
-        for key, val in data.get('commands', {}).items():
-            commands[key] = str(val)
-        for key in ('classify_categories', 'critical_files', 'auto_quick_patterns'):
-            if key in data:
-                val = data[key]
-                if isinstance(val, list):
-                    commands[key.upper()] = ', '.join(str(v) for v in val)
-
-commands['VERSION'] = '$VERSION'
-commands['STACKS'] = ', '.join(stacks)
-print(json.dumps(commands))
+import sys, json; sys.path.insert(0, '$MASTER_DIR/tools')
+from workflow_utils import load_commands
+print(json.dumps(load_commands('$MASTER_DIR', '$STACKS'.split(','), '$VERSION')))
 ")
 
 # Resolve {{PLACEHOLDER}} values in updated .md files

@@ -33,11 +33,15 @@ def main():
 
     # Preserve project-specific servers from existing .mcp.json
     if args.preserve_existing and os.path.exists(args.output):
-        with open(args.output) as f:
-            existing = json.load(f)
-        for name, config in existing.get("mcpServers", {}).items():
-            if name not in template_server_names:
-                merged_servers[name] = config
+        try:
+            with open(args.output) as f:
+                existing = json.load(f)
+            for name, config in existing.get("mcpServers", {}).items():
+                if name not in template_server_names:
+                    merged_servers[name] = config
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"WARNING: Could not parse existing {args.output}: {e}", file=sys.stderr)
+            print("  Project-specific servers will not be preserved.", file=sys.stderr)
 
     if not merged_servers:
         sys.exit(0)

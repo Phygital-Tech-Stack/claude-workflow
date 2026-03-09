@@ -165,30 +165,23 @@ def main():
         if preserved:
             settings = merge_overrides(settings, preserved)
 
-        # Preserve project-specific inline hooks (not from base/stack scripts)
-        # These are hooks with inline python3 -c commands, as opposed to
-        # hooks referencing .claude/hooks/ scripts or GUARD: refs.
-        #
-        # Dedup by purpose: if an existing hook checks the same core pattern
-        # as a newly composed guard (env_files, critical, quick_fix, injection,
-        # session, REMIND), treat it as a replaced guard and skip it.
-        GUARD_SIGNATURES = [
-            "env_files",      # env-secrets guard
-            "critical",       # critical-file guard
-            "quick_fix",      # quick-fix-blocker
-            "injection",      # prompt-injection
-            "session",        # session-file-tracker
-            "[REMIND]",       # test-reminder
-            "[SIZE]",         # file-size-limits guard
-            "[TYPE]",         # any-type-blocker guard
-            "[NAMING]",       # naming-detector guard
-            "[ROOT-CAUSE]",   # ts-ignore-blocker guard
-            "[DESIGN]",       # design-doc-guard
-            "estimate",       # scope-estimator guard
-        ]
-
+        # Preserve project-specific inline hooks from existing settings.
+        # Skip hooks that are: managed scripts (.claude/hooks/), unresolved
+        # GUARD: refs, or functionally identical to a hook already in the
+        # composed settings (by command hash — catches both base guards and
+        # stack guards regardless of naming).
         existing_hooks = existing.get("hooks", {})
         if existing_hooks:
+            # Build a set of command hashes already in the composed settings
+            import hashlib
+            composed_hashes: set[str] = set()
+            for event_groups in settings.get("hooks", {}).values():
+                for group in event_groups:
+                    for hook in group.get("hooks", []):
+                        cmd = hook.get("command", "") or hook.get("prompt", "") or hook.get("agent", "")
+                        if cmd:
+                            composed_hashes.add(hashlib.md5(cmd.encode()).hexdigest())
+
             project_hooks: dict[str, list] = {}
             for event_key, event_groups in existing_hooks.items():
                 project_groups = []
@@ -200,9 +193,9 @@ def main():
                         # Skip hooks that reference managed scripts or guards
                         if ".claude/hooks/" in cmd or cmd.startswith("GUARD:"):
                             continue
-                        # Skip hooks that match a base/stack guard signature
-                        is_guard = any(sig in cmd for sig in GUARD_SIGNATURES)
-                        if is_guard:
+                        # Skip hooks that are functionally identical to a
+                        # composed hook (same command text = same guard)
+                        if cmd and hashlib.md5(cmd.encode()).hexdigest() in composed_hashes:
                             continue
                         project_hook_list.append(copy.deepcopy(hook))
                     if project_hook_list:

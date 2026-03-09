@@ -29,15 +29,50 @@ mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,blueprints,agent-memory,progress}
 
 echo "Initializing project at $PROJECT_DIR with stacks: $STACKS (master v$VERSION)"
 
+# Load excludes from existing workflow.overrides.yaml (if present)
+# so we don't overwrite project-specific files that are excluded from sync.
+EXCLUDES=""
+if [[ -f "$CLAUDE_DIR/workflow.overrides.yaml" ]]; then
+  EXCLUDES=$(python3 -c "
+import yaml, sys
+try:
+    with open('$CLAUDE_DIR/workflow.overrides.yaml') as f:
+        data = yaml.safe_load(f) or {}
+    for e in data.get('exclude', []) or []:
+        print(e)
+except: pass
+" 2>/dev/null) || true
+fi
+
+# Helper: check if a relative path (inside .claude/) is excluded
+is_excluded() {
+  local rel="$1"
+  if [[ -z "$EXCLUDES" ]]; then
+    return 1  # not excluded
+  fi
+  while IFS= read -r pattern; do
+    [[ -z "$pattern" ]] && continue
+    # Pattern "agents/foo.md" matches exactly; "skills/bar/" matches prefix
+    if [[ "$rel" == "$pattern" ]] || [[ "$rel" == "${pattern%/}/"* ]] || [[ "$rel" == "${pattern}" ]]; then
+      return 0  # excluded
+    fi
+  done <<< "$EXCLUDES"
+  return 1  # not excluded
+}
+
 # 1. Copy base files
 echo "  Copying base files..."
 cp "$MASTER_DIR/base/WORKFLOW.md" "$CLAUDE_DIR/WORKFLOW.md"
 cp "$MASTER_DIR/base/hooks/"*.sh "$CLAUDE_DIR/hooks/"
 chmod +x "$CLAUDE_DIR/hooks/"*.sh
 
-# Copy base skills (skip empty directories)
+# Copy base skills (skip empty directories and excluded skills)
 for skill_dir in "$MASTER_DIR/base/skills/"*/; do
   skill_name=$(basename "$skill_dir")
+  if is_excluded "skills/$skill_name/"; then
+    echo "    Skipping excluded skill: $skill_name"
+    continue
+  fi
   # Only copy if directory contains files
   if compgen -G "$skill_dir"* > /dev/null 2>&1; then
     mkdir -p "$CLAUDE_DIR/skills/$skill_name"
@@ -45,12 +80,23 @@ for skill_dir in "$MASTER_DIR/base/skills/"*/; do
   fi
 done
 
-# Copy base agents
-cp "$MASTER_DIR/base/agents/"*.md "$CLAUDE_DIR/agents/"
+# Copy base agents (skip excluded)
+for agent_file in "$MASTER_DIR/base/agents/"*.md; do
+  agent_name=$(basename "$agent_file")
+  if is_excluded "agents/$agent_name"; then
+    echo "    Skipping excluded agent: $agent_name"
+    continue
+  fi
+  cp "$agent_file" "$CLAUDE_DIR/agents/$agent_name"
+done
 
-# Copy base blueprints
+# Copy base blueprints (skip excluded)
 for tmpl in "$MASTER_DIR/base/blueprints/"*.template.md; do
   basename_no_template=$(basename "$tmpl" .template.md)
+  if is_excluded "blueprints/" || is_excluded "blueprints/${basename_no_template}.md"; then
+    echo "    Skipping excluded blueprint: ${basename_no_template}.md"
+    continue
+  fi
   cp "$tmpl" "$CLAUDE_DIR/blueprints/${basename_no_template}.md"
 done
 

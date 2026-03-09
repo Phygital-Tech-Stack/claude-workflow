@@ -18,8 +18,7 @@ def match(cmd: str, output: str) -> list[str] | None:
     elif "mypy" in cmd:
         if "Cannot find implementation or library stub" in output:
             suggestions.append(
-                "Missing type stubs — install stubs with "
-                "`pip install types-<package>` or add to pyproject.toml"
+                "Missing type stubs — install stubs with " "`pip install types-<package>` or add to pyproject.toml"
             )
         elif "Incompatible return value" in output or "Incompatible types" in output:
             suggestions.append("Type mismatch — check function return type annotations")
@@ -33,10 +32,7 @@ def match(cmd: str, output: str) -> list[str] | None:
         if "connection refused" in output or "ConnectionError" in output:
             suggestions.append("Service not running — start required services (DB, Redis, etc.)")
         elif "timeout" in output or "TimeoutError" in output:
-            suggestions.append(
-                "Test timeout — check for blocking calls, "
-                "missing async/await, or slow fixtures"
-            )
+            suggestions.append("Test timeout — check for blocking calls, " "missing async/await, or slow fixtures")
         elif "no tests ran" in output or "collected 0 items" in output:
             suggestions.append("No tests found — check test file naming (test_*.py) and markers")
         elif "fixture" in output and "not found" in output:
@@ -54,9 +50,7 @@ def match(cmd: str, output: str) -> list[str] | None:
                 "Check `alembic heads` for multiple heads."
             )
         elif "Can't locate revision" in output:
-            suggestions.append(
-                "Missing migration — check alembic_version table matches files in versions/"
-            )
+            suggestions.append("Missing migration — check alembic_version table matches files in versions/")
         elif "connection" in output or "OperationalError" in output:
             suggestions.append("Database connection failed — check DATABASE_URL in .env")
         else:
@@ -65,14 +59,9 @@ def match(cmd: str, output: str) -> list[str] | None:
     # Pip/poetry/uv install failures
     elif "pip" in cmd or "poetry" in cmd or "uv" in cmd:
         if "ResolutionImpossible" in output or "version" in output:
-            suggestions.append(
-                "Version conflict — check dependency constraints in pyproject.toml"
-            )
+            suggestions.append("Version conflict — check dependency constraints in pyproject.toml")
         elif "No matching distribution" in output:
-            suggestions.append(
-                "Package not found — verify package name on PyPI "
-                "(AI can hallucinate package names)"
-            )
+            suggestions.append("Package not found — verify package name on PyPI " "(AI can hallucinate package names)")
         else:
             suggestions.append("Install error — try clearing cache and reinstalling")
 

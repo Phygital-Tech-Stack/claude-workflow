@@ -347,9 +347,13 @@ print(json.dumps(commands))
 
   # Commit
   echo "  Staging and committing..."
-  # Ensure all .sh hooks are executable before staging
   chmod +x "$project_dir/.claude/hooks/"*.sh 2>/dev/null || true
   git add .claude/
+  # Force executable bit in git index for all hook scripts
+  # (lint-staged stash/restore can strip filesystem +x before commit)
+  for hook_file in .claude/hooks/*.sh; do
+    [[ -f "$hook_file" ]] && git update-index --chmod=+x "$hook_file" 2>/dev/null || true
+  done
   # Untrack .mcp.json if it was previously tracked (contains credentials)
   if git ls-files --error-unmatch .mcp.json 2>/dev/null; then
     echo "  Untracking .mcp.json (should not be committed — may contain credentials)"
@@ -370,6 +374,7 @@ EOF
 
   # Push
   echo "  Pushing branch..."
+  git fetch origin 2>/dev/null || true
   git push -u origin "$BRANCH" --force-with-lease 2>&1
 
   # Create PR

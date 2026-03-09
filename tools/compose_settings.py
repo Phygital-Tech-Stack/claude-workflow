@@ -179,6 +179,12 @@ def main():
             "injection",      # prompt-injection
             "session",        # session-file-tracker
             "[REMIND]",       # test-reminder
+            "[SIZE]",         # file-size-limits guard
+            "[TYPE]",         # any-type-blocker guard
+            "[NAMING]",       # naming-detector guard
+            "[ROOT-CAUSE]",   # ts-ignore-blocker guard
+            "[DESIGN]",       # design-doc-guard
+            "estimate",       # scope-estimator guard
         ]
 
         existing_hooks = existing.get("hooks", {})
@@ -189,11 +195,12 @@ def main():
                 for group in event_groups:
                     project_hook_list = []
                     for hook in group.get("hooks", []):
-                        cmd = hook.get("command", "")
+                        # Check command, prompt, and agent fields
+                        cmd = hook.get("command", "") or hook.get("prompt", "") or hook.get("agent", "")
                         # Skip hooks that reference managed scripts or guards
                         if ".claude/hooks/" in cmd or cmd.startswith("GUARD:"):
                             continue
-                        # Skip hooks that match a base guard signature
+                        # Skip hooks that match a base/stack guard signature
                         is_guard = any(sig in cmd for sig in GUARD_SIGNATURES)
                         if is_guard:
                             continue

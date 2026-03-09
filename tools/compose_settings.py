@@ -153,7 +153,7 @@ def main():
                 overlay = resolve_guard_refs(overlay, stack_guards)
             settings = merge_hooks(settings, overlay)
 
-    # Preserve project-specific permissions and enabledMcpjsonServers from existing settings
+    # Preserve project-specific settings from existing settings.json
     if args.preserve_from and os.path.exists(args.preserve_from):
         with open(args.preserve_from) as f:
             existing = json.load(f)
@@ -164,6 +164,42 @@ def main():
             preserved["enabledMcpjsonServers"] = existing["enabledMcpjsonServers"]
         if preserved:
             settings = merge_overrides(settings, preserved)
+
+        # Preserve project-specific inline hooks (not from base/stack scripts)
+        # These are hooks with inline python3 -c commands, as opposed to
+        # hooks referencing .claude/hooks/ scripts or GUARD: refs.
+        existing_hooks = existing.get("hooks", {})
+        if existing_hooks:
+            project_hooks: dict[str, list] = {}
+            for event_key, event_groups in existing_hooks.items():
+                project_groups = []
+                for group in event_groups:
+                    project_hook_list = []
+                    for hook in group.get("hooks", []):
+                        cmd = hook.get("command", "")
+                        # Skip hooks that reference managed scripts or guards
+                        if ".claude/hooks/" in cmd or cmd.startswith("GUARD:"):
+                            continue
+                        # Skip hooks that are also in the newly composed settings
+                        # (base guards like env-secrets, quick-fix-blocker, etc.)
+                        is_duplicate = False
+                        for new_group in settings.get("hooks", {}).get(event_key, []):
+                            for new_hook in new_group.get("hooks", []):
+                                if new_hook.get("command", "") == cmd:
+                                    is_duplicate = True
+                                    break
+                            if is_duplicate:
+                                break
+                        if not is_duplicate:
+                            project_hook_list.append(copy.deepcopy(hook))
+                    if project_hook_list:
+                        preserved_group = copy.deepcopy(group)
+                        preserved_group["hooks"] = project_hook_list
+                        project_groups.append(preserved_group)
+                if project_groups:
+                    project_hooks[event_key] = project_groups
+            if project_hooks:
+                settings = merge_hooks(settings, {"hooks": project_hooks})
 
     # Merge project overrides from workflow.overrides.yaml
     if args.overrides and os.path.exists(args.overrides):

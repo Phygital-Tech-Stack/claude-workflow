@@ -74,6 +74,7 @@ stacks:
   - typescript-nestjs
 
 exclude:
+  # Project-specific skills
   - skills/debug/
   - skills/generate-endpoint/
   - skills/generate-module/
@@ -81,12 +82,25 @@ exclude:
   - skills/impact-analysis/
   - skills/test-runner/
   - skills/ui-ux-pro-max/
+  # Project-specific agents (customized with ERP domain knowledge)
   - agents/architecture-guardian.md
   - agents/database-expert.md
   - agents/security-reviewer.md
+  - agents/code-reviewer.md
+  # Project-specific content
   - blueprints/
   - rules/
   - teams/
+  # Project-specific hooks
+  - hooks/check_schema_fields.py
+  - hooks/check_cross_module.py
+  - hooks/check_config_first.py
+  - hooks/check_zustand_purity.py
+  - hooks/check_claude_md_size.py
+  - hooks/check_function_length.py
+  - hooks/check_as_warning.py
+  - hooks/check_any_blocker.py
+  - hooks/check_file_size.py
 YAML
 }
 
@@ -253,6 +267,11 @@ for stack in stacks:
             data = yaml.safe_load(f) or {}
         for key, val in data.get('commands', {}).items():
             commands[key] = str(val)
+        for key in ('classify_categories', 'critical_files', 'auto_quick_patterns'):
+            if key in data:
+                val = data[key]
+                if isinstance(val, list):
+                    commands[key.upper()] = ', '.join(str(v) for v in val)
 commands['VERSION'] = '$VERSION'
 commands['STACKS'] = ', '.join(stacks)
 print(json.dumps(commands))

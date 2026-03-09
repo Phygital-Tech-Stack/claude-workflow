@@ -257,21 +257,16 @@ process_project() {
         --master "$MASTER_DIR"
       ;;
     3-erp)
+      # Generate overrides BEFORE init.sh so it can read the exclude list
+      # and skip project-specific files (agents, skills, blueprints, etc.)
+      echo "  Generating erp-specific workflow.overrides.yaml..."
+      mkdir -p "$project_dir/.claude"
+      generate_overrides_erp "$project_dir/.claude"
       echo "  Running init.sh (Tier 3: erp special case)..."
       "$MASTER_DIR/tools/init.sh" \
         --project "$project_dir" \
         --stacks "$stacks" \
         --master "$MASTER_DIR"
-      echo "  Generating erp-specific workflow.overrides.yaml..."
-      generate_overrides_erp "$project_dir/.claude"
-      # Restore project-specific files that init.sh overwrote with base versions
-      echo "  Restoring excluded files from git..."
-      (cd "$project_dir" && git checkout -- \
-        .claude/agents/architecture-guardian.md \
-        .claude/agents/database-expert.md \
-        .claude/agents/security-reviewer.md \
-        .claude/agents/code-reviewer.md \
-        2>/dev/null || true)
       # Re-compose settings with overrides applied
       # Uses the ORIGINAL settings.json (saved before init.sh) for --preserve-from
       # so project-specific inline hooks are preserved exactly once.
@@ -319,13 +314,14 @@ print(json.dumps(commands))
         --stacks "$stacks"
       ;;
     3-phronesis)
+      echo "  Generating phronesis-specific workflow.overrides.yaml..."
+      mkdir -p "$project_dir/.claude"
+      generate_overrides_phronesis "$project_dir/.claude"
       echo "  Running init.sh (Tier 3: phronesis special case)..."
       "$MASTER_DIR/tools/init.sh" \
         --project "$project_dir" \
         --stacks "$stacks" \
         --master "$MASTER_DIR"
-      echo "  Generating phronesis-specific workflow.overrides.yaml..."
-      generate_overrides_phronesis "$project_dir/.claude"
       # Regenerate lock with overrides in place
       python3 "$MASTER_DIR/tools/generate_lock.py" \
         --claude-dir "$project_dir/.claude" \

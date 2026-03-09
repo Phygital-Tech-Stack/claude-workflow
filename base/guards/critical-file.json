@@ -2,7 +2,7 @@
   "event": "PreToolUse",
   "matcher": "Edit|Write",
   "hook": {
-    "type": "prompt",
-    "prompt": "Check if the file being edited matches any critical infrastructure file (schema, migrations, pubspec.yaml, package.json, nx.json, pyproject.toml, appsettings.json, *.csproj). If yes, warn: '[GUARD] Critical infrastructure file. Run /validate-change after editing and consider the blast radius.' If no, allow silently."
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\ncritical = '{{CRITICAL_FILES}}'.split(',')\ncritical = [c.strip() for c in critical if c.strip()]\nif any(c in p for c in critical):\n    print(json.dumps({'systemMessage': '[GUARD] Critical infrastructure file (schema/routes/config). Run /validate-change after editing.'}))\nsys.exit(0)\n\""
   }
 }

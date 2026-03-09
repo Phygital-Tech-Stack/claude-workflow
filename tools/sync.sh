@@ -28,10 +28,12 @@ if [[ ! -f "$LOCK_PATH" ]]; then
 fi
 
 # Read lock info
-VERSION=$(python3 -c "import json; print(json.load(open('$LOCK_PATH'))['version'])")
+LOCK_VERSION=$(python3 -c "import json; print(json.load(open('$LOCK_PATH'))['version'])")
 STACKS=$(python3 -c "import json; print(','.join(json.load(open('$LOCK_PATH'))['stacks']))")
+MASTER_VERSION=$(python3 -c "import json; print(json.load(open('$MASTER_DIR/version.json'))['version'])")
+VERSION="$MASTER_VERSION"
 
-echo "Syncing project at $PROJECT_DIR (pinned: v$VERSION, stacks: $STACKS)"
+echo "Syncing project at $PROJECT_DIR (pinned: v$LOCK_VERSION → v$VERSION, stacks: $STACKS)"
 
 # Run drift check in JSON mode
 DRIFT_JSON=$("$MASTER_DIR/tools/diff.sh" --project "$PROJECT_DIR" --master "$MASTER_DIR" --json 2>&1) || true
@@ -133,6 +135,119 @@ for s in stacks:
       UPDATED=$((UPDATED + 1))
     fi
   done <<< "$MISSING_FILES"
+fi
+
+# Detect NEW files in master that aren't in the lock yet
+echo ""
+echo "Checking for new files in master..."
+NEW_FILES=$(python3 -c "
+import json, os, sys
+
+lock_path = '$LOCK_PATH'
+master_dir = '$MASTER_DIR'
+claude_dir = '$CLAUDE_DIR'
+stacks = '$STACKS'.split(',')
+
+with open(lock_path) as f:
+    lock = json.load(f)
+managed = set(lock.get('managed', {}).keys())
+
+# Load excludes from overrides
+excludes = set()
+overrides_path = os.path.join(claude_dir, 'workflow.overrides.yaml')
+if os.path.exists(overrides_path):
+    try:
+        import yaml
+        with open(overrides_path) as f:
+            overrides = yaml.safe_load(f) or {}
+        excludes = set(overrides.get('exclude', []) or [])
+    except ImportError:
+        pass
+
+def is_excluded(rel_path):
+    return any(rel_path.startswith(ex.rstrip('/')) for ex in excludes)
+
+# Scan base for files not in lock
+scan_dirs = {
+    'base/hooks': 'hooks',
+    'base/agents': 'agents',
+    'base/skills': 'skills',
+    'base/blueprints': 'blueprints',
+}
+# Also add WORKFLOW.md
+base_wf = os.path.join(master_dir, 'base', 'WORKFLOW.md')
+if os.path.exists(base_wf) and 'WORKFLOW.md' not in managed:
+    print('WORKFLOW.md')
+
+for src_dir_rel, dest_prefix in scan_dirs.items():
+    src_dir = os.path.join(master_dir, src_dir_rel)
+    if not os.path.isdir(src_dir):
+        continue
+    for root, dirs, files in os.walk(src_dir):
+        for fname in files:
+            src_path = os.path.join(root, fname)
+            rel_from_src = os.path.relpath(src_path, src_dir)
+            dest_rel = os.path.join(dest_prefix, rel_from_src)
+            if dest_rel not in managed and not is_excluded(dest_rel):
+                # Skip __pycache__ and .pyc files
+                if '__pycache__' in dest_rel or dest_rel.endswith('.pyc'):
+                    continue
+                print(dest_rel)
+
+# Scan stack dirs for new files
+for stack in stacks:
+    stack = stack.strip()
+    for sub in ('hooks', 'failure-patterns'):
+        src_dir = os.path.join(master_dir, 'stacks', stack, sub)
+        if not os.path.isdir(src_dir):
+            continue
+        dest_prefix = 'hooks' if sub == 'hooks' else 'hooks/failure-patterns'
+        for root, dirs, files in os.walk(src_dir):
+            for fname in files:
+                src_path = os.path.join(root, fname)
+                if sub == 'failure-patterns':
+                    dest_rel = os.path.join(dest_prefix, fname)
+                else:
+                    rel_from_src = os.path.relpath(src_path, src_dir)
+                    dest_rel = os.path.join(dest_prefix, rel_from_src)
+                if dest_rel not in managed and not is_excluded(dest_rel):
+                    if '__pycache__' in dest_rel or dest_rel.endswith('.pyc'):
+                        continue
+                    print(dest_rel)
+" 2>/dev/null) || true
+
+if [[ -n "$NEW_FILES" ]]; then
+  echo "NEW files from master (will add):"
+  while IFS= read -r file; do
+    [[ -z "$file" ]] && continue
+    echo "  Adding: $file"
+    SOURCE=$(python3 -c "
+import os, sys
+master='$MASTER_DIR'; rel='$file'; stacks='$STACKS'.split(',')
+# Check base
+p = os.path.join(master, 'base', rel)
+if os.path.exists(p): print(p); sys.exit(0)
+# Check stacks
+for s in stacks:
+    p = os.path.join(master, 'stacks', s, rel)
+    if os.path.exists(p): print(p); sys.exit(0)
+    if rel.startswith('hooks/'):
+        hr = rel[len('hooks/'):]
+        p = os.path.join(master, 'stacks', s, 'hooks', hr)
+        if os.path.exists(p): print(p); sys.exit(0)
+        p = os.path.join(master, 'stacks', s, 'failure-patterns', hr.replace('failure-patterns/', ''))
+        if os.path.exists(p): print(p); sys.exit(0)
+")
+    if [[ -n "$SOURCE" ]]; then
+      mkdir -p "$(dirname "$CLAUDE_DIR/$file")"
+      cp "$SOURCE" "$CLAUDE_DIR/$file"
+      # Make shell scripts executable
+      if [[ "$file" == *.sh ]]; then
+        chmod +x "$CLAUDE_DIR/$file"
+      fi
+      UPDATED=$((UPDATED + 1))
+    fi
+  done <<< "$NEW_FILES"
 fi
 
 # Build commands JSON for placeholder resolution

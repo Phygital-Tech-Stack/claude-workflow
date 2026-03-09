@@ -15,16 +15,16 @@
       },
       {
         "matcher": "Edit|Write",
-        "hooks": [{ "type": "prompt", "prompt": "GUARD:critical-file" }]
+        "hooks": [{ "type": "command", "command": "GUARD:critical-file" }]
       },
       {
-        "matcher": "Edit|Write",
+        "matcher": "Write",
         "hooks": [{ "type": "prompt", "prompt": "GUARD:scope-estimator" }]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit",
+        "matcher": "Edit|Write",
         "hooks": [{ "type": "command", "command": "GUARD:test-reminder" }]
       },
       {

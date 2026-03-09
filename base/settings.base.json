@@ -35,48 +35,48 @@
     "SessionStart": [
       {
         "matcher": "startup|resume",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/session-start.sh" }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/session-start.sh" }]
       }
     ],
     "PreCompact": [
       {
         "matcher": "auto|manual",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/pre-compact.sh" }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pre-compact.sh" }]
       }
     ],
     "SubagentStart": [
       {
         "matcher": "{{AGENT_NAMES}}",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/subagent-start.sh" }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/subagent-start.sh" }]
       }
     ],
     "PostToolUseFailure": [
       {
         "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/post-failure.sh" }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/post-failure.sh" }]
       }
     ],
     "TaskCompleted": [
       {
-        "hooks": [{ "type": "command", "command": ".claude/hooks/task-completed.sh" }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/task-completed.sh" }]
       }
     ],
     "TeammateIdle": [
       {
-        "hooks": [{ "type": "command", "command": ".claude/hooks/teammate-idle.sh" }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/teammate-idle.sh" }]
       }
     ],
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/prompt-submit.sh" },
-          { "type": "command", "command": ".claude/hooks/context-check.sh" }
+          { "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/prompt-submit.sh" },
+          { "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/context-check.sh" }
         ]
       }
     ],
     "Stop": [
       {
-        "hooks": [{ "type": "command", "command": ".claude/hooks/stop-gate.sh" }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/stop-gate.sh" }]
       }
     ]
   }

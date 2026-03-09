@@ -3,31 +3,31 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "python3 .claude/hooks/dart_format.py", "timeout": 30 }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/dart_format.py", "timeout": 30 }]
       },
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "python3 .claude/hooks/check_print.py", "timeout": 10 }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/check_print.py", "timeout": 10 }]
       },
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "python3 .claude/hooks/dart_analyze.py", "timeout": 30 }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/dart_analyze.py", "timeout": 30 }]
       },
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "python3 .claude/hooks/check_file_size.py", "timeout": 10 }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/check_file_size.py", "timeout": 10 }]
       },
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "python3 .claude/hooks/check_deprecated.py", "timeout": 10 }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/check_deprecated.py", "timeout": 10 }]
       },
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "python3 .claude/hooks/check_imports.py", "timeout": 10 }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/check_imports.py", "timeout": 10 }]
       },
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "python3 .claude/hooks/check_nesting.py", "timeout": 10 }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/check_nesting.py", "timeout": 10 }]
       }
     ]
   }

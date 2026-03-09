@@ -3,7 +3,7 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/dotnet_format.sh", "timeout": 30 }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/dotnet_format.sh", "timeout": 30 }]
       }
     ]
   }

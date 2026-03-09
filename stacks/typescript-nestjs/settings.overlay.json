@@ -3,7 +3,7 @@
     "PreToolUse": [
       {
         "matcher": "Write",
-        "hooks": [{ "type": "command", "command": ".claude/hooks/tdd-guard.sh" }]
+        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/tdd-guard.sh" }]
       },
       {
         "matcher": "Bash",

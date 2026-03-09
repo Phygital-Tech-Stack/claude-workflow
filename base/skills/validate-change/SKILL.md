@@ -38,8 +38,8 @@ Classify changes: {{CLASSIFY_CATEGORIES}}
 
 | Layer | Name | What It Does | On FAIL |
 |-------|------|-------------|---------|
-| **1** | Deterministic | `ruff format --check`, `ruff check`, `mypy` | Stop — fix before tests |
-| **2** | Semantic | `pytest`, cross-boundary impact trace | Stop — fix logic bugs |
+| **1** | Deterministic | `{{FORMAT_COMMAND}}`, `{{ANALYZE_COMMAND}}` | Stop — fix before tests |
+| **2** | Semantic | `{{TEST_COMMAND}}`, cross-boundary impact trace | Stop — fix logic bugs |
 | **3** | Security | Gitleaks, deprecated patterns, file sizes | Stop — MUST fix |
 | **4** | Agentic | `code-reviewer` agent with BLOCK/WARN/INFO tiers | BLOCK = FAIL, WARN = L5 |
 | **5** | Human | Only when L3/L4 escalate findings | User decides |

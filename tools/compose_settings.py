@@ -168,6 +168,19 @@ def main():
         # Preserve project-specific inline hooks (not from base/stack scripts)
         # These are hooks with inline python3 -c commands, as opposed to
         # hooks referencing .claude/hooks/ scripts or GUARD: refs.
+        #
+        # Dedup by purpose: if an existing hook checks the same core pattern
+        # as a newly composed guard (env_files, critical, quick_fix, injection,
+        # session, REMIND), treat it as a replaced guard and skip it.
+        GUARD_SIGNATURES = [
+            "env_files",      # env-secrets guard
+            "critical",       # critical-file guard
+            "quick_fix",      # quick-fix-blocker
+            "injection",      # prompt-injection
+            "session",        # session-file-tracker
+            "[REMIND]",       # test-reminder
+        ]
+
         existing_hooks = existing.get("hooks", {})
         if existing_hooks:
             project_hooks: dict[str, list] = {}
@@ -180,18 +193,11 @@ def main():
                         # Skip hooks that reference managed scripts or guards
                         if ".claude/hooks/" in cmd or cmd.startswith("GUARD:"):
                             continue
-                        # Skip hooks that are also in the newly composed settings
-                        # (base guards like env-secrets, quick-fix-blocker, etc.)
-                        is_duplicate = False
-                        for new_group in settings.get("hooks", {}).get(event_key, []):
-                            for new_hook in new_group.get("hooks", []):
-                                if new_hook.get("command", "") == cmd:
-                                    is_duplicate = True
-                                    break
-                            if is_duplicate:
-                                break
-                        if not is_duplicate:
-                            project_hook_list.append(copy.deepcopy(hook))
+                        # Skip hooks that match a base guard signature
+                        is_guard = any(sig in cmd for sig in GUARD_SIGNATURES)
+                        if is_guard:
+                            continue
+                        project_hook_list.append(copy.deepcopy(hook))
                     if project_hook_list:
                         preserved_group = copy.deepcopy(group)
                         preserved_group["hooks"] = project_hook_list

@@ -253,6 +253,14 @@ process_project() {
         --master "$MASTER_DIR"
       echo "  Generating erp-specific workflow.overrides.yaml..."
       generate_overrides_erp "$project_dir/.claude"
+      # Restore project-specific files that init.sh overwrote with base versions
+      echo "  Restoring excluded files from git..."
+      (cd "$project_dir" && git checkout -- \
+        .claude/agents/architecture-guardian.md \
+        .claude/agents/database-expert.md \
+        .claude/agents/security-reviewer.md \
+        .claude/agents/code-reviewer.md \
+        2>/dev/null || true)
       # Re-compose settings with overrides applied
       echo "  Re-composing settings.json with overrides..."
       local commands_json
@@ -325,8 +333,11 @@ print(json.dumps(commands))
   # Commit
   echo "  Staging and committing..."
   git add .claude/
-  # Also stage .mcp.json if it was created/updated
-  [[ -f "$project_dir/.mcp.json" ]] && git add .mcp.json || true
+  # Untrack .mcp.json if it was previously tracked (contains credentials)
+  if git ls-files --error-unmatch .mcp.json 2>/dev/null; then
+    echo "  Untracking .mcp.json (should not be committed — may contain credentials)"
+    git rm --cached .mcp.json 2>/dev/null || true
+  fi
   # Stage .gitignore if modified
   git diff --quiet .gitignore 2>/dev/null || git add .gitignore 2>/dev/null || true
 

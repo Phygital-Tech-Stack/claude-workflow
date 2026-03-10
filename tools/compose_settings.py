@@ -103,6 +103,31 @@ def merge_overrides(settings: dict, overrides_settings: dict) -> dict:
     return result
 
 
+def dedup_hooks(settings: dict) -> dict:
+    """Remove duplicate hooks within each event by command/prompt/agent hash."""
+    import hashlib
+
+    result = copy.deepcopy(settings)
+    for event_key, event_groups in result.get("hooks", {}).items():
+        seen: set[str] = set()
+        deduped_groups = []
+        for group in event_groups:
+            deduped_hook_list = []
+            for hook in group.get("hooks", []):
+                cmd = hook.get("command", "") or hook.get("prompt", "") or hook.get("agent", "")
+                matcher = group.get("matcher", "*")
+                fingerprint = f"{matcher}|{hashlib.md5(cmd.encode()).hexdigest()}"
+                if fingerprint not in seen:
+                    seen.add(fingerprint)
+                    deduped_hook_list.append(hook)
+            if deduped_hook_list:
+                deduped_group = copy.deepcopy(group)
+                deduped_group["hooks"] = deduped_hook_list
+                deduped_groups.append(deduped_group)
+        result["hooks"][event_key] = deduped_groups
+    return result
+
+
 def resolve_placeholders(obj, placeholders: dict[str, str]):
     """Recursively resolve {{KEY}} placeholders in all string values."""
     if isinstance(obj, str):
@@ -229,6 +254,9 @@ def main():
             placeholders["AGENT_NAMES"] = "|".join(agents)
     if placeholders:
         settings = resolve_placeholders(settings, placeholders)
+
+    # Dedup hooks — prevents accumulation from repeated syncs with --preserve-from
+    settings = dedup_hooks(settings)
 
     # Write output
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)

@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Based on the current task context, estimate how many files this change is likely to touch. If the change implies modifications to more than 5 files (high blast radius), warn: '[GUARD] High blast radius \u2014 consider running /brainstorm first to plan the approach.' If the scope is contained, allow silently."
+            "prompt": "Based on the current task context, estimate how many files this change is likely to touch. If the file being written is a markdown (.md) file (e.g. design docs, plans, progress notes), allow silently \u2014 documentation files are planning artifacts, not implementation. Otherwise, if the change implies modifications to more than 5 files (high blast radius), warn: '[GUARD] High blast radius \u2014 consider running /brainstorm first to plan the approach.' If the scope is contained, allow silently."
           }
         ]
       }

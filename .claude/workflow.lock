@@ -1,11 +1,11 @@
 {
-  "version": "1.4.2",
+  "version": "1.4.3",
   "stacks": [],
-  "lastSync": "2026-03-10T10:32:28.595247Z",
+  "lastSync": "2026-03-10T10:51:58.741688Z",
   "managed": {
     "WORKFLOW.md": "sha256:2ab5b7317e4aae155bd4dd600a0e8e68bdeee95f05db3904958da2c42f1366d4",
     "settings.json": "sha256:0143972f26ec9a1b9c2519bf80c2a19f753e550516b992700c19eb44e537ff73",
-    "workflow.lock": "sha256:f03073bd22dbf23acf789cddf8796e91b59d98c3ff16e0f305e8043b6b535258",
+    "workflow.lock": "sha256:e27cf1e59f7469080170b98dd2fcfbff84919958afd28fecd0bb2a5734ba395a",
     "workflow.overrides.yaml": "sha256:2e019fab1c58c99b7891118a3c419f8c7aa75bffdc5c259f6101373adc7d23af",
     "agents/frontend-handler.md": "sha256:07c1f9dc240674e9fcb4a60e0b578e0d5995e22ae6ce8940e02584c891324dbd",
     "agents/backend-handler.md": "sha256:24d2daa6655b95fa95a81e68c3bbd25b8d44384498157081faca3deaeb77c64e",

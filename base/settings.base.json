@@ -30,6 +30,14 @@
       {
         "matcher": "Write|Edit",
         "hooks": [{ "type": "command", "command": "GUARD:session-file-tracker" }]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "GUARD:check-file-size" }]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "GUARD:co-authored-by" }]
       }
     ],
     "SessionStart": [

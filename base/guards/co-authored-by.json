@@ -1,0 +1,8 @@
+{
+  "event": "PostToolUse",
+  "matcher": "Bash",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys, subprocess\nd = json.load(sys.stdin)\ncmd = d.get('tool_input', {}).get('command', '')\nif 'git commit' not in cmd or '--amend' in cmd:\n    sys.exit(0)\ntry:\n    msg = subprocess.check_output(['git', 'log', '-1', '--format=%B'], text=True, timeout=5)\n    if 'Co-Authored-By' not in msg:\n        print(json.dumps({'systemMessage': '[COMPLIANCE] Last commit is missing Co-Authored-By trailer. Use /commit skill to ensure attribution.'}))\nexcept Exception:\n    pass\nsys.exit(0)\n\""
+  }
+}

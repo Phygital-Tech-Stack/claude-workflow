@@ -1,0 +1,12 @@
+# Decision Log
+
+> Architectural and design decisions made during development.
+> Each entry follows the format below. Append new entries at the bottom.
+
+<!--
+## YYYY-MM-DD HH:mm — [DECISION TITLE]
+**Context**: [Why this decision was needed — what problem or trade-off prompted it]
+**Decision**: [What was decided and the key reasoning]
+**Alternatives**: [What other options were considered and why they were rejected]
+**Consequences**: [What this means going forward — constraints, follow-up work, risks]
+-->

@@ -61,6 +61,21 @@ Imports should be grouped and ordered:
 
 Separate groups with a blank line.
 
+## Layer Boundaries
+
+Architecture follows a top-down dependency rule: higher layers may depend on lower layers, but **never the reverse**.
+
+| Layer (top→bottom) | May import | Must NOT import |
+|--------------------|-----------|-----------------|
+| Controller / Router / Screen | Service | Repository, Entity/Model directly |
+| Service / Provider | Repository, Entity/Model | Controller / Router / Screen |
+| Repository | Entity / Model | Service, Controller |
+| Entity / Model | (none — leaf layer) | Any higher layer |
+
+**Rationale**: Enforcing layer boundaries prevents circular dependencies, keeps business logic testable in isolation, and ensures UI/API layers don't bypass the service layer.
+
+**Enforcement**: Stack-specific PreToolUse hooks warn when imports violate these rules. The hook is advisory (not a blocker) to allow legitimate exceptions such as shared types or DTOs that cross layers.
+
 ## Banned Patterns
 
 | Pattern | Reason | Alternative |

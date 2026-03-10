@@ -1,5 +1,11 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "GUARD:check-layer-imports" }]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",

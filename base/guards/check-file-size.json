@@ -1,0 +1,8 @@
+{
+  "event": "PostToolUse",
+  "matcher": "Edit|Write",
+  "hook": {
+    "type": "command",
+    "command": "python3 -c \"\nimport json, sys, os\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\nif not p:\n    sys.exit(0)\nskip_ext = ('.md', '.json', '.yaml', '.yml', '.lock', '.txt', '.csv', '.html', '.css', '.svg')\nif p.endswith(skip_ext):\n    sys.exit(0)\nskip_path = ['node_modules', 'test', 'tests', '__tests__', '.spec.', '_test.', '.test.', '.g.dart', '.freezed.']\nif any(s in p for s in skip_path):\n    sys.exit(0)\nif not os.path.exists(p):\n    sys.exit(0)\nwith open(p) as f:\n    lines = len(f.readlines())\nsoft = int(os.environ.get('WORKFLOW_FILE_SIZE_SOFT', '400'))\nhard = int(os.environ.get('WORKFLOW_FILE_SIZE_HARD', '600'))\nbn = os.path.basename(p).lower()\nif any(k in bn for k in ['controller', 'router', 'endpoint', 'screen', 'route']):\n    soft, hard = 300, 500\nelif any(k in bn for k in ['service', 'provider', 'repository']):\n    soft, hard = 350, 550\nif lines > hard:\n    print(json.dumps({'decision': 'block', 'reason': f'[SIZE] BLOCKED: {os.path.basename(p)} is {lines} lines (hard limit: {hard}). Extract before continuing.'}))\n    sys.exit(2)\nelif lines > soft:\n    print(json.dumps({'systemMessage': f'[SIZE] {os.path.basename(p)} is {lines} lines (soft limit: {soft}). Consider extraction.'}))\nsys.exit(0)\n\""
+  }
+}

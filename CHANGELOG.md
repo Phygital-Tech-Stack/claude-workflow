@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.4.0] - 2026-03-10
+
+### Added
+- Teams as first-class workflow concept: curated prompt bundles for parallel agent orchestration
+- Base validation team (code-reviewer, security-reviewer, arch-checker) for all projects
+- TypeScript/NestJS generation team (schema-builder, backend-builder, api-builder, test-writer) as stack-specific overlay
+- team.yaml manifest format for machine-discoverable team rosters
+- Cross-cutting refactor pattern documentation in validation team README
+- Teams support in sync tooling: init.sh copies base + stack teams, sync.sh detects team drift (lock generation tracks team files automatically)
+- `--team` / `--no-team` flags on `/validate-change` skill (team mode is default)
+- Teams section in WORKFLOW.md
+
+### Changed
+- init.sh creates teams/ directory and copies base + stack team overlays
+- sync.sh scans base/teams/ and stacks/{stack}/teams/ for new files
+- workflow_utils.py find_master_source() resolves stack team file paths
+- validate-change Layer 4 spawns 3 parallel teammates instead of single code-reviewer (use `--no-team` for old behavior)
+
+### Not Yet Implemented
+- `/generate-module --team` skill (generation team prompts are ready, skill will be added per stack)
+
 ## [1.3.0] - 2026-03-10
 
 ### Added

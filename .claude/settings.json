@@ -63,6 +63,15 @@
             "command": "python3 -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\ncritical = 'base/settings.base.json, base/guards/, tools/init.sh, tools/sync.sh, tools/drift_check.py, tools/generate_lock.py, version.json, projects.json'.split(',')\ncritical = [c.strip() for c in critical if c.strip()]\nif any(c in p for c in critical):\n    print(json.dumps({'systemMessage': '[GUARD] Critical infrastructure file (schema/routes/config). Run /validate-change after editing.'}))\nsys.exit(0)\n\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\ncritical = 'base/settings.base.json, base/guards/, tools/init.sh, tools/sync.sh, tools/drift_check.py, tools/generate_lock.py, version.json, projects.json'.split(',')\ncritical = [c.strip() for c in critical if c.strip()]\nif any(c in p for c in critical):\n    print(json.dumps({'systemMessage': '[GUARD] Critical infrastructure file (schema/routes/config). Run /validate-change after editing.'}))\nsys.exit(0)\n\""
+          }
+        ]
       }
     ],
     "PostToolUse": [

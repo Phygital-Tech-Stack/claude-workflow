@@ -37,7 +37,7 @@ if [[ "$SELF_MODE" == "false" && -z "$STACKS" ]]; then
 fi
 
 CLAUDE_DIR="$PROJECT_DIR/.claude"
-mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,blueprints,agent-memory,progress}
+mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,blueprints,agent-memory,progress,teams}
 
 echo "Initializing project at $PROJECT_DIR with stacks: $STACKS (master v$VERSION)"
 
@@ -125,6 +125,26 @@ if [[ "$SELF_MODE" == "true" ]]; then
     ln -sf "../../base/blueprints/$(basename "$tmpl")" "$CLAUDE_DIR/blueprints/${basename_no_template}.md"
   done
 
+  # Teams (symlink base teams)
+  if [[ -d "$MASTER_DIR/base/teams" ]]; then
+    for team_dir in "$MASTER_DIR/base/teams/"*/; do
+      team_name=$(basename "$team_dir")
+      mkdir -p "$CLAUDE_DIR/teams/$team_name/prompts"
+      # Symlink team.yaml and README.md
+      for team_file in "$team_dir"*.yaml "$team_dir"*.md; do
+        [[ -f "$team_file" ]] || continue
+        ln -sf "../../../base/teams/$team_name/$(basename "$team_file")" "$CLAUDE_DIR/teams/$team_name/$(basename "$team_file")"
+      done
+      # Symlink prompt files
+      if [[ -d "$team_dir/prompts" ]]; then
+        for prompt_file in "$team_dir/prompts/"*.md; do
+          [[ -f "$prompt_file" ]] || continue
+          ln -sf "../../../../base/teams/$team_name/prompts/$(basename "$prompt_file")" "$CLAUDE_DIR/teams/$team_name/prompts/$(basename "$prompt_file")"
+        done
+      fi
+    done
+  fi
+
 else
   echo "  Copying base files..."
   cp "$MASTER_DIR/base/WORKFLOW.md" "$CLAUDE_DIR/WORKFLOW.md"
@@ -176,6 +196,34 @@ else
     fi
     cp "$tmpl" "$CLAUDE_DIR/blueprints/${basename_no_template}.md"
   done
+
+  # Copy base teams (skip excluded)
+  if [[ -d "$MASTER_DIR/base/teams" ]]; then
+    for team_dir in "$MASTER_DIR/base/teams/"*/; do
+      team_name=$(basename "$team_dir")
+      if is_excluded "teams/$team_name/"; then
+        echo "    Skipping excluded team: $team_name"
+        continue
+      fi
+      mkdir -p "$CLAUDE_DIR/teams/$team_name/prompts"
+      # Copy team.yaml and README.md
+      for team_file in "$team_dir"*.yaml "$team_dir"*.md; do
+        [[ -f "$team_file" ]] || continue
+        cp "$team_file" "$CLAUDE_DIR/teams/$team_name/$(basename "$team_file")"
+      done
+      # Copy prompt files
+      if [[ -d "$team_dir/prompts" ]]; then
+        for prompt_file in "$team_dir/prompts/"*.md; do
+          [[ -f "$prompt_file" ]] || continue
+          if is_excluded "teams/$team_name/prompts/$(basename "$prompt_file")"; then
+            echo "    Skipping excluded team prompt: $team_name/$(basename "$prompt_file")"
+            continue
+          fi
+          cp "$prompt_file" "$CLAUDE_DIR/teams/$team_name/prompts/$(basename "$prompt_file")"
+        done
+      fi
+    done
+  fi
 fi
 
 # 2. Apply stack overlays (skip in self-mode — no stack)
@@ -200,6 +248,34 @@ if [[ "$SELF_MODE" == "false" ]]; then
     if [[ -d "$stack_dir/failure-patterns" ]]; then
       mkdir -p "$CLAUDE_DIR/hooks/failure-patterns"
       cp "$stack_dir/failure-patterns/"* "$CLAUDE_DIR/hooks/failure-patterns/"
+    fi
+
+    # Copy stack teams (overlay on top of base teams)
+    if [[ -d "$stack_dir/teams" ]]; then
+      for team_dir in "$stack_dir/teams/"*/; do
+        team_name=$(basename "$team_dir")
+        if is_excluded "teams/$team_name/"; then
+          echo "    Skipping excluded stack team: $team_name"
+          continue
+        fi
+        mkdir -p "$CLAUDE_DIR/teams/$team_name/prompts"
+        # Copy team.yaml and README.md (stack wins on conflict)
+        for team_file in "$team_dir"*.yaml "$team_dir"*.md; do
+          [[ -f "$team_file" ]] || continue
+          cp "$team_file" "$CLAUDE_DIR/teams/$team_name/$(basename "$team_file")"
+        done
+        # Copy prompt files
+        if [[ -d "$team_dir/prompts" ]]; then
+          for prompt_file in "$team_dir/prompts/"*.md; do
+            [[ -f "$prompt_file" ]] || continue
+            if is_excluded "teams/$team_name/prompts/$(basename "$prompt_file")"; then
+              echo "    Skipping excluded stack team prompt: $team_name/$(basename "$prompt_file")"
+              continue
+            fi
+            cp "$prompt_file" "$CLAUDE_DIR/teams/$team_name/prompts/$(basename "$prompt_file")"
+          done
+        fi
+      done
     fi
   done
 

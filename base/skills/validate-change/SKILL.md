@@ -2,7 +2,7 @@
 name: validate-change
 description: Use when verifying code changes are correct and complete before committing. Runs a 5-layer verification lattice from fast deterministic checks to agentic review. Triggers on 'validate', 'validate my change', 'check if this is ready', or after implementation work.
 user-invocable: true
-argument-hint: <description of change>
+argument-hint: <description of change> [--team | --no-team]
 allowed-tools: Read, Grep, Glob, Bash, Task
 model: opus
 ---
@@ -41,8 +41,10 @@ Classify changes: {{CLASSIFY_CATEGORIES}}
 | **1** | Deterministic | `{{FORMAT_COMMAND}}`, `{{ANALYZE_COMMAND}}` | Stop — fix before tests |
 | **2** | Semantic | `{{TEST_COMMAND}}`, cross-boundary impact trace | Stop — fix logic bugs |
 | **3** | Security | Gitleaks, deprecated patterns, file sizes | Stop — MUST fix |
-| **4** | Agentic | `code-reviewer` agent with BLOCK/WARN/INFO tiers | BLOCK = FAIL, WARN = L5 |
+| **4** | Agentic | Validation team (3 parallel reviewers) or single `code-reviewer` | BLOCK = FAIL, WARN = L5 |
 | **5** | Human | Only when L3/L4 escalate findings | User decides |
+
+**Team mode** (default): Layer 4 spawns 3 parallel teammates (code-reviewer, security-reviewer, arch-checker) from `.claude/teams/validation/`. Use `--no-team` to fall back to a single code-reviewer agent.
 
 See `reference.md` for full commands per layer, severity tier tables, auto-quick detection details, and example outputs.
 

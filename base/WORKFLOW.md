@@ -172,6 +172,24 @@ Deep-reference documents in `.claude/blueprints/` used by skills as authoritativ
 
 <!-- PROJECT: Add project-specific blueprints here. -->
 
+### Teams
+
+Curated prompt bundles for coordinated parallel agent orchestration. Teams complement the official (experimental) Claude Code Agent Teams runtime — we provide project-level prompt templates and roster configs.
+
+| Team | Scope | Members | Used By |
+|------|-------|---------|---------|
+| **validation** | Base (all projects) | code-reviewer, security-reviewer, arch-checker | `/validate-change --team` |
+| **generation** | Stack-specific | Varies by stack (e.g., schema-builder, backend-builder, api-builder, test-writer) | `/generate-module --team` (planned) |
+
+**Structure**: Each team lives in `.claude/teams/<name>/` with:
+- `team.yaml` — thin manifest (name, description, member list)
+- `README.md` — usage documentation and orchestration patterns
+- `prompts/<member>.md` — self-contained prompt for each teammate
+
+**Relationship to agents**: Teams reference standalone agents by name (from `.claude/agents/`). Teams can also define team-only specialists via `prompts/<name>.md` that don't exist as standalone agents.
+
+**Sync**: Base teams come from `base/teams/`. Stack-specific teams come from `stacks/{stack}/teams/`. Stack teams overlay base teams (stack wins on conflict).
+
 ## Session Continuity Lifecycle
 
 ```

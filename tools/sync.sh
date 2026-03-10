@@ -204,6 +204,7 @@ scan_dirs = {
     'base/agents': 'agents',
     'base/skills': 'skills',
     'base/blueprints': 'blueprints',
+    'base/teams': 'teams',
 }
 # Also add WORKFLOW.md
 base_wf = os.path.join(master_dir, 'base', 'WORKFLOW.md')
@@ -241,6 +242,19 @@ for stack in stacks:
                 else:
                     rel_from_src = os.path.relpath(src_path, src_dir)
                     dest_rel = os.path.join(dest_prefix, rel_from_src)
+                if dest_rel not in managed and not is_excluded(dest_rel):
+                    if '__pycache__' in dest_rel or dest_rel.endswith('.pyc'):
+                        continue
+                    print(dest_rel)
+
+    # Scan stack teams for new files
+    teams_dir = os.path.join(master_dir, 'stacks', stack, 'teams')
+    if os.path.isdir(teams_dir):
+        for root, dirs, files in os.walk(teams_dir):
+            for fname in files:
+                src_path = os.path.join(root, fname)
+                rel_from_teams = os.path.relpath(src_path, teams_dir)
+                dest_rel = os.path.join('teams', rel_from_teams)
                 if dest_rel not in managed and not is_excluded(dest_rel):
                     if '__pycache__' in dest_rel or dest_rel.endswith('.pyc'):
                         continue

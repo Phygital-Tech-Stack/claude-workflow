@@ -68,7 +68,29 @@ Check changed files against project-specific thresholds defined in stack config.
 
 ## Layer 4: Agentic — Invocation
 
-Invoke the `code-reviewer` agent:
+### Team Mode (default, `--team`)
+
+Read `.claude/teams/validation/team.yaml` to discover the team roster. For each member:
+
+1. Read the teammate's prompt from `.claude/teams/validation/prompts/<name>.md`
+2. Spawn a parallel Task with the prompt + changed file list
+3. Wait for all teammates to complete
+
+```
+# Spawn 3 parallel Tasks:
+Task(code-reviewer):   "Review changed files: [file list]. <prompt from prompts/code-reviewer.md>"
+Task(security-reviewer): "Review changed files: [file list]. <prompt from prompts/security-reviewer.md>"
+Task(arch-checker):    "Review changed files: [file list]. <prompt from prompts/arch-checker.md>"
+```
+
+**Aggregation**: Overall verdict = worst individual verdict across all teammates.
+- Any teammate returns FAIL -> overall FAIL
+- Any teammate returns WARN (no FAIL) -> overall WARN
+- All teammates PASS -> overall PASS
+
+### Single-Agent Mode (`--no-team`)
+
+Fall back to a single code-reviewer agent:
 
 ```
 Task tool with subagent_type="code-reviewer"

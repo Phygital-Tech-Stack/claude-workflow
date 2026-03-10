@@ -1,0 +1,1 @@
+../../../../base/teams/validation/prompts/code-reviewer.md

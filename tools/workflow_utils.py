@@ -57,6 +57,9 @@ def find_master_source(master_dir: str, rel_path: str, stacks: list[str]) -> str
                 if os.path.exists(fp_path):
                     return fp_path
 
+        # Team files: stack teams are at stacks/{stack}/teams/<team>/...
+        # which matches the direct check above (line 42-44), so no special handling needed.
+
     return None
 
 

@@ -1,0 +1,6 @@
+name: validation
+description: Multi-lens code review team for parallel validation
+members:
+  - code-reviewer      # references base/agents/code-reviewer.md
+  - security-reviewer  # references base/agents/security-reviewer.md
+  - arch-checker       # team-only specialist (prompt in prompts/)

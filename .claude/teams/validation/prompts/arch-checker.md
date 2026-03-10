@@ -1,0 +1,1 @@
+../../../../base/teams/validation/prompts/arch-checker.md

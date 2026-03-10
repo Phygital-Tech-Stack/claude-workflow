@@ -1,0 +1,7 @@
+name: generation
+description: Parallel NestJS module scaffolding team
+members:
+  - schema-builder     # Drizzle ORM table + history + shared types
+  - backend-builder    # NestJS repository + service + errors + module
+  - api-builder        # NestJS controller + 4 DTOs
+  - test-writer        # Jest service + controller specs

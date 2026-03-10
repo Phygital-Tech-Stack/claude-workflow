@@ -1,0 +1,1 @@
+../../../../base/teams/validation/prompts/security-reviewer.md

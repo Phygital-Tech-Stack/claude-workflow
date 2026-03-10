@@ -1,6 +1,7 @@
 ---
 name: score-guardrails
 description: Use when scoring a project's AI guardrail maturity. Evaluates 20 dimensions across 4 weighted tiers (Foundation x4, Enforcement x3, Workflow x2, Excellence x1) producing a 0-250 score. Triggers on 'score guardrails', 'rate my guardrails', 'audit AI setup', 'guardrail maturity'.
+user-invocable: true
 allowed-tools: Read, Glob, Grep, Task, Bash
 argument-hint: [project-path]
 ---

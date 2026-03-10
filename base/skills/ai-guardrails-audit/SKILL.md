@@ -1,6 +1,7 @@
 ---
 name: ai-guardrails-audit
 description: Use when documentation may be stale or guardrails have drifted from the codebase. Verifies skills, agents, hooks, tech stack, modules, MCP servers, and blueprints are in sync.
+user-invocable: true
 allowed-tools: Bash, Read, Grep, Glob, Task
 argument-hint: [--full | --fix | --no-team]
 ---

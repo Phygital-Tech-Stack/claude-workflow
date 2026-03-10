@@ -166,6 +166,19 @@ Quick mode is **auto-detected**, not user-selected.
 
 Run Layers 1-2 only. Note in verdict: `(auto-quick: docs/test-only change)`.
 
+## Verdict Template
+
+```
+## Validation Result: [PASS | FAIL | WARN]
+
+| Layer | Check | Result | Detail |
+|-------|-------|--------|--------|
+| 1 | Format / Analysis | PASS/FAIL | ... |
+| 2 | Tests / Cross-boundary | PASS/FAIL | ... |
+| 3 | Secrets / Deprecated / File Sizes | PASS/FAIL | ... |
+| 4 | Code Review | PASS/WARN/FAIL | N BLOCK, M WARN |
+```
+
 ## Example Output — Full Pass
 
 ```

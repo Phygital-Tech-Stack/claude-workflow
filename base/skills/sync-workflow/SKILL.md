@@ -28,58 +28,21 @@ Read `.claude/workflow.overrides.yaml` for stacks and excludes.
 
 ### 2. Discover Latest Version & Fetch Master
 
-First, discover the latest available version from the remote repo:
+Discover latest version from remote, compare with pinned version, clone at latest. See `reference.md` for full bash/python commands.
 
-```bash
-MASTER_REPO="https://github.com/Phygital-Tech-Stack/claude-workflow.git"
-PINNED=$(python3 -c "import json; print(json.load(open('.claude/workflow.lock'))['version'])")
-LATEST=$(git ls-remote --tags --sort=-v:refname "$MASTER_REPO" 'v*' | head -1 | sed 's/.*refs\/tags\/v//')
-```
-
-If `LATEST` is newer than `PINNED`, report it to the user:
-> **Upgrade available**: pinned v{PINNED}, latest v{LATEST}.
-
-Then clone at the **latest** version (not the pinned version):
-
-```bash
-rm -rf /tmp/claude-workflow-master
-git clone --depth 1 --branch "v$LATEST" "$MASTER_REPO" /tmp/claude-workflow-master
-```
-
-Update the version in `.claude/workflow.lock`:
-
-```bash
-python3 -c "
-import json
-lock_path = '.claude/workflow.lock'
-with open(lock_path) as f:
-    lock = json.load(f)
-lock['version'] = '$LATEST'
-with open(lock_path, 'w') as f:
-    json.dump(lock, f, indent=2)
-    f.write('\n')
-"
-```
+If `LATEST` is newer than `PINNED`, report: **Upgrade available**: pinned v{PINNED}, latest v{LATEST}.
 
 ### 3. Run Drift Check
 
-```bash
-/tmp/claude-workflow-master/tools/diff.sh --project . --master /tmp/claude-workflow-master
-```
-
-Report the results table to the user. Note: the report is now against v{LATEST}.
+Run `diff.sh` from cloned master against the project. Report results table. See `reference.md` for command.
 
 ### 4. Sync (if --update)
 
-```bash
-/tmp/claude-workflow-master/tools/sync.sh --project . --master /tmp/claude-workflow-master
-```
+Run `sync.sh` from cloned master. See `reference.md` for command.
 
 ### 5. Clean Up
 
-```bash
-rm -rf /tmp/claude-workflow-master
-```
+Remove `/tmp/claude-workflow-master`. See `reference.md`.
 
 ### 6. Commit Changes
 

@@ -50,18 +50,7 @@ See `reference.md` for full commands per layer, severity tier tables, auto-quick
 
 ## Verdict
 
-```
-## Validation Result: [PASS | FAIL | WARN]
-
-| Layer | Check | Result | Detail |
-|-------|-------|--------|--------|
-| 1 | Format / Analysis | PASS/FAIL | ... |
-| 2 | Tests / Cross-boundary | PASS/FAIL | ... |
-| 3 | Secrets / Deprecated / File Sizes | PASS/FAIL | ... |
-| 4 | Code Review | PASS/WARN/FAIL | N BLOCK, M WARN |
-```
-
-**Overall**: FAIL if any BLOCK or layer failure. WARN if WARN-tier findings pending. PASS if all clear.
+Output the verdict table from `reference.md`. **Overall**: FAIL if any BLOCK or layer failure. WARN if WARN-tier findings pending. PASS if all clear.
 
 ## Related Skills
 

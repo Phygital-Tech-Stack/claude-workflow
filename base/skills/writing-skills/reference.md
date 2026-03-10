@@ -1,5 +1,17 @@
 # Writing Skills - Deep Reference
 
+## Audit Rubric — Scoring Criteria
+
+| # | Dimension | 5 (Excellent) | 3 (Adequate) | 0 (Missing) |
+|---|-----------|---------------|--------------|-------------|
+| 1 | **CSO** | "Use when..." + symptoms, NO workflow summary | Has description but summarizes | Missing or generic |
+| 2 | **Structure** | Overview, when-to-use, core pattern, quick ref | Some sections, inconsistent | Wall of text |
+| 3 | **Token Efficiency** | <500 words, heavy ref in separate files | <800 words, some bloat | >1000 words |
+| 4 | **Frontmatter** | name + description + allowed-tools, all correct | Has most fields | Missing |
+| 5 | **Actionability** | Concrete steps, real commands, actual file paths | Mix of concrete and vague | Abstract only |
+| 6 | **Cross-refs** | Explicit "REQUIRED: /skill" or "See: /skill" | Mentions informally | Isolated |
+| 7 | **Testing** | Baseline tested, pressure scenarios documented | Informally tested | Never tested |
+
 ## TDD Skill Creation Guide
 
 ### RED Phase: Document Baseline Failures

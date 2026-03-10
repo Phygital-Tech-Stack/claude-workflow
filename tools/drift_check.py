@@ -142,6 +142,79 @@ def main():
             entry["master_source"] = os.path.relpath(master_path, args.master)
         results.append(entry)
 
+    # Detect NEW files in master that aren't in the lock yet
+    managed = set(lock.get("managed", {}).keys())
+
+    def is_excluded(rel_path: str) -> bool:
+        return any(rel_path.startswith(ex.rstrip("/")) for ex in excludes)
+
+    # Scan base directories for untracked files
+    scan_dirs = {
+        "base/hooks": "hooks",
+        "base/agents": "agents",
+        "base/skills": "skills",
+        "base/blueprints": "blueprints",
+        "base/teams": "teams",
+    }
+
+    # Check WORKFLOW.md
+    base_wf = os.path.join(args.master, "base", "WORKFLOW.md")
+    if os.path.exists(base_wf) and "WORKFLOW.md" not in managed and not is_excluded("WORKFLOW.md"):
+        results.append({"file": "WORKFLOW.md", "status": "NEW"})
+
+    for src_dir_rel, dest_prefix in scan_dirs.items():
+        src_dir = os.path.join(args.master, src_dir_rel)
+        if not os.path.isdir(src_dir):
+            continue
+        for root, dirs, files in os.walk(src_dir):
+            dirs[:] = [d for d in dirs if d != "__pycache__"]
+            for fname in files:
+                if fname.endswith((".pyc", ".pyo")):
+                    continue
+                src_path = os.path.join(root, fname)
+                rel_from_src = os.path.relpath(src_path, src_dir)
+                dest_rel = os.path.join(dest_prefix, rel_from_src)
+                if dest_rel not in managed and not is_excluded(dest_rel):
+                    results.append({"file": dest_rel, "status": "NEW"})
+
+    # Scan stack directories for untracked files
+    for stack in stacks:
+        stack = stack.strip()
+        if not stack:
+            continue
+        for sub in ("hooks", "failure-patterns"):
+            src_dir = os.path.join(args.master, "stacks", stack, sub)
+            if not os.path.isdir(src_dir):
+                continue
+            dest_prefix = "hooks" if sub == "hooks" else "hooks/failure-patterns"
+            for root, dirs, files in os.walk(src_dir):
+                dirs[:] = [d for d in dirs if d != "__pycache__"]
+                for fname in files:
+                    if fname.endswith((".pyc", ".pyo")):
+                        continue
+                    src_path = os.path.join(root, fname)
+                    if sub == "failure-patterns":
+                        dest_rel = os.path.join(dest_prefix, fname)
+                    else:
+                        rel_from_src = os.path.relpath(src_path, src_dir)
+                        dest_rel = os.path.join(dest_prefix, rel_from_src)
+                    if dest_rel not in managed and not is_excluded(dest_rel):
+                        results.append({"file": dest_rel, "status": "NEW"})
+
+        # Scan stack teams
+        teams_dir = os.path.join(args.master, "stacks", stack, "teams")
+        if os.path.isdir(teams_dir):
+            for root, dirs, files in os.walk(teams_dir):
+                dirs[:] = [d for d in dirs if d != "__pycache__"]
+                for fname in files:
+                    if fname.endswith((".pyc", ".pyo")):
+                        continue
+                    src_path = os.path.join(root, fname)
+                    rel_from_teams = os.path.relpath(src_path, teams_dir)
+                    dest_rel = os.path.join("teams", rel_from_teams)
+                    if dest_rel not in managed and not is_excluded(dest_rel):
+                        results.append({"file": dest_rel, "status": "NEW"})
+
     # Output
     if args.format == "json":
         print(json.dumps({"version": lock.get("version"), "results": results}, indent=2))
@@ -151,6 +224,7 @@ def main():
         local_edit = [r for r in results if r["status"] == "LOCAL-EDIT"]
         current = [r for r in results if r["status"] == "CURRENT"]
         missing = [r for r in results if r["status"] == "MISSING"]
+        new = [r for r in results if r["status"] == "NEW"]
 
         print(f"Workflow Drift Report (pinned: v{lock.get('version')})")
         print(f"  CURRENT:    {len(current)} files")
@@ -158,10 +232,15 @@ def main():
         print(f"  DIVERGED:   {len(diverged)} files")
         print(f"  LOCAL-EDIT: {len(local_edit)} files")
         print(f"  MISSING:    {len(missing)} files")
+        print(f"  NEW:        {len(new)} files")
 
         if behind:
             print("\nBEHIND (auto-update available):")
             for r in behind:
+                print(f"  - {r['file']}")
+        if new:
+            print("\nNEW (available in master, not yet synced):")
+            for r in new:
                 print(f"  - {r['file']}")
         if diverged:
             print("\nDIVERGED (manual merge needed):")
@@ -176,7 +255,7 @@ def main():
             for r in missing:
                 print(f"  - {r['file']}")
 
-    has_issues = any(r["status"] != "CURRENT" for r in results)
+    has_issues = any(r["status"] not in ("CURRENT",) for r in results)
     sys.exit(1 if has_issues else 0)
 
 

@@ -1,11 +1,11 @@
 {
-  "version": "1.4.1",
+  "version": "1.4.2",
   "stacks": [],
-  "lastSync": "2026-03-10T09:23:11.380467Z",
+  "lastSync": "2026-03-10T10:32:28.595247Z",
   "managed": {
     "WORKFLOW.md": "sha256:2ab5b7317e4aae155bd4dd600a0e8e68bdeee95f05db3904958da2c42f1366d4",
     "settings.json": "sha256:0143972f26ec9a1b9c2519bf80c2a19f753e550516b992700c19eb44e537ff73",
-    "workflow.lock": "sha256:7440fd0a6aa27a8836153acf70798df56fbb4c0108425b1d24d32e8d8806c42e",
+    "workflow.lock": "sha256:f03073bd22dbf23acf789cddf8796e91b59d98c3ff16e0f305e8043b6b535258",
     "workflow.overrides.yaml": "sha256:2e019fab1c58c99b7891118a3c419f8c7aa75bffdc5c259f6101373adc7d23af",
     "agents/frontend-handler.md": "sha256:07c1f9dc240674e9fcb4a60e0b578e0d5995e22ae6ce8940e02584c891324dbd",
     "agents/backend-handler.md": "sha256:24d2daa6655b95fa95a81e68c3bbd25b8d44384498157081faca3deaeb77c64e",
@@ -38,7 +38,7 @@
     "teams/validation/prompts/arch-checker.md": "sha256:804e9e5f0e9805b3007fe6cd3298ece628da6657544611f57aa00815d8f1fe3b",
     "teams/validation/prompts/code-reviewer.md": "sha256:26ae974f7ece98fb459c6f6a162853fa550f1b6e413acd01dfb7456bccee067b",
     "blueprints/testing-patterns.md": "sha256:226771c062b0ad610e6b4018e44b43817fe09f8dd0b9c7a9a5ca641ec0c22414",
-    "blueprints/coding-conventions.md": "sha256:c54b0b6ddc8596008beee6f1caefcf2c1d0a5f246324685c7860c36e3069318c",
+    "blueprints/coding-conventions.md": "sha256:5cfe58a23f26c34452a70ef9fe66747f65cac54e512e9f247d7bbb8b9153e71f",
     "hooks/post-failure.sh": "sha256:7c68077a98b8564b79fd3ed8acc9e40343ca843c1f93e4be6fa9c12a842eae47",
     "hooks/stop-gate.sh": "sha256:6c6a3460ce82525804d91f39c2741a6f5a6baa5acea0abd4e4877346d141734d",
     "hooks/task-completed.sh": "sha256:58560423d4257b8e9dedada735a336a37afebbfb7f37eb70ac4bac728acef7a8",

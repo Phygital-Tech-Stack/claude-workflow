@@ -60,6 +60,43 @@ Orchestrator (Claude)
 | Tight coupling between components | — | Yes |
 | Large feature (>5 files) | Yes | — |
 
+### How to Invoke Parallel Agents
+
+**Worked example: "Adding a user profile endpoint"**
+
+```
+Step 1: Invoke planner agent
+        Task(planner, "Plan user profile endpoint: GET/PUT /users/:id/profile")
+        → Returns task graph with disjoint file sets per agent
+
+Step 2: Spawn parallel handlers (no shared files)
+        Task(backend-handler, "Implement profile model + handler per plan step backend.*")
+        Task(frontend-handler, "Implement ProfileScreen + useProfile hook per plan step frontend.*")
+        Task(test-writer, "Write unit + integration tests per plan step tests.*")
+        ← All three run concurrently — they touch separate file trees
+
+Step 3: Spawn parallel reviewers (read-only, safe to parallelize)
+        Task(security-reviewer, "Audit profile endpoint for auth, data exposure, OWASP top 10")
+        Task(code-reviewer, "Review profile implementation against coding conventions")
+        ← Both are read-only — no conflict risk
+
+Step 4: Orchestrator merges findings
+        ├── Apply auto-fixes from code-reviewer
+        ├── Address security-reviewer findings
+        ├── Run /validate-change
+        └── /commit
+```
+
+> **Key rule**: Only spawn agents in parallel when they touch **disjoint file sets**. If two agents might edit the same file, run them sequentially.
+
+### Troubleshooting Parallel Agents
+
+| Problem | Symptom | Resolution |
+|---------|---------|------------|
+| **Conflicting file edits** | Two agents edit the same file; second write overwrites the first | Run conflicting agents sequentially, or split the file into separate modules before parallelizing |
+| **Agent timeout/failure** | An agent fails or stalls; other agents completed successfully | Re-invoke only the failed agent with the same prompt. Do not re-run successful agents. Check agent memory for known error patterns |
+| **Context budget exceeded** | Parallel agents multiply context cost (N agents × prompt size); orchestrator hits limits | Reduce parallelism — run 2 agents at a time instead of 5. Use `/compact` between phases. Keep agent prompts focused (reference plan steps, not full plan) |
+
 > Projects can exclude unused agents via `workflow.overrides.yaml` → `exclude`.
 
 <!-- PROJECT: Add project-specific agents here. -->
@@ -304,41 +341,6 @@ Step 3: /writing-skills audit <skill-name>   → verify 28+/35
 Step 4: /commit
 ```
 
-### How to Invoke Parallel Agents
-
-**Example: Adding a user profile endpoint**
-
-```
-Step 1: Invoke planner
-        User: "Plan the user profile endpoint feature"
-        → Planner produces task graph:
-            Task A: backend-handler → POST /users/profile endpoint + service
-            Task B: frontend-handler → Profile screen + form component
-            Task C: test-writer → API + UI tests
-            Dependencies: A and B are independent; C depends on A and B
-
-Step 2: Spawn parallel handlers (Phase 2)
-        Orchestrator launches Task A and Task B concurrently.
-        Each agent works in isolation on non-overlapping files.
-
-Step 3: Review in parallel (Phase 3)
-        After handlers complete, launch security-reviewer and
-        code-reviewer concurrently to audit the changes.
-
-Step 4: Merge findings (Phase 4)
-        Orchestrator collects all agent outputs, resolves any
-        flagged issues, runs /validate-change, then /commit.
-```
-
-### Troubleshooting Parallel Agents
-
-| Problem | Cause | Resolution |
-|---------|-------|------------|
-| Conflicting file edits | Two agents edited the same file | Use planner to partition files; if unavoidable, run agents sequentially for shared files |
-| Agent timeout/failure | Context exhaustion or tool error | Retry the single failed agent; don't re-run successful agents |
-| High context cost | Parallel agents multiply token usage | Limit to 2-3 concurrent agents; use read-only agents where possible |
-| Inconsistent API contract | Backend and frontend disagree on shape | Define API contract in a shared blueprint before spawning parallel handlers |
-
 ## Agent Interaction Patterns
 
 ### Escalation Rules
@@ -376,7 +378,7 @@ When an agent encounters a concern outside its domain, it **flags but does not f
 | "This skill isn't working well" | `/writing-skills audit` | Fix → re-audit → `/commit` |
 | "How mature are my AI guardrails?" | `/score-guardrails` | Review gaps → `/brainstorm` to close them |
 | "Sync workflow from master" | `/sync-workflow --check` | `/sync-workflow --update` if behind |
-| "Large feature, multiple agents" | `/brainstorm` → planner agent | Parallel handlers → reviewers → `/validate-change` → `/commit` |
+| "Large feature, multiple agents" | `Task(planner, ...)` | Parallel handlers → reviewers → `/validate-change` → `/commit` |
 
 ## Sync Management
 

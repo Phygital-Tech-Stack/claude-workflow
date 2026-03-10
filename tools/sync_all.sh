@@ -69,7 +69,7 @@ generate_overrides_erp() {
 # Claude Workflow Overrides — erp
 # Project-specific files excluded from master sync
 
-version: "1.2.0"
+version: "${VERSION}"
 stacks:
   - typescript-nestjs
 
@@ -110,7 +110,7 @@ generate_overrides_phronesis() {
 # Claude Workflow Overrides — phronesis
 # Project-specific files excluded from master sync
 
-version: "1.2.0"
+version: "${VERSION}"
 stacks:
   - python-fastapi
 

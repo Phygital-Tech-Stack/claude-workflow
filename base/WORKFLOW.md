@@ -222,6 +222,10 @@ Before compacting (or when context is high):
 2. `/commit` if there are working changes
 3. Log key decisions to `.claude/decisions.log`
 
+### Compaction Report
+
+Run `python3 tools/compaction_report.py` to review compaction history from `.claude/compaction.log`. The report shows total compactions, average context % at compaction time, and the most recent event. Use `--format json` for machine-readable output.
+
 ### Token-Heavy Operations
 
 - `/brainstorm` — spawns multi-phase analysis. If context >60%, consider parking the design doc and continuing in a new session.
@@ -300,6 +304,41 @@ Step 3: /writing-skills audit <skill-name>   → verify 28+/35
 Step 4: /commit
 ```
 
+### How to Invoke Parallel Agents
+
+**Example: Adding a user profile endpoint**
+
+```
+Step 1: Invoke planner
+        User: "Plan the user profile endpoint feature"
+        → Planner produces task graph:
+            Task A: backend-handler → POST /users/profile endpoint + service
+            Task B: frontend-handler → Profile screen + form component
+            Task C: test-writer → API + UI tests
+            Dependencies: A and B are independent; C depends on A and B
+
+Step 2: Spawn parallel handlers (Phase 2)
+        Orchestrator launches Task A and Task B concurrently.
+        Each agent works in isolation on non-overlapping files.
+
+Step 3: Review in parallel (Phase 3)
+        After handlers complete, launch security-reviewer and
+        code-reviewer concurrently to audit the changes.
+
+Step 4: Merge findings (Phase 4)
+        Orchestrator collects all agent outputs, resolves any
+        flagged issues, runs /validate-change, then /commit.
+```
+
+### Troubleshooting Parallel Agents
+
+| Problem | Cause | Resolution |
+|---------|-------|------------|
+| Conflicting file edits | Two agents edited the same file | Use planner to partition files; if unavoidable, run agents sequentially for shared files |
+| Agent timeout/failure | Context exhaustion or tool error | Retry the single failed agent; don't re-run successful agents |
+| High context cost | Parallel agents multiply token usage | Limit to 2-3 concurrent agents; use read-only agents where possible |
+| Inconsistent API contract | Backend and frontend disagree on shape | Define API contract in a shared blueprint before spawning parallel handlers |
+
 ## Agent Interaction Patterns
 
 ### Escalation Rules
@@ -337,6 +376,7 @@ When an agent encounters a concern outside its domain, it **flags but does not f
 | "This skill isn't working well" | `/writing-skills audit` | Fix → re-audit → `/commit` |
 | "How mature are my AI guardrails?" | `/score-guardrails` | Review gaps → `/brainstorm` to close them |
 | "Sync workflow from master" | `/sync-workflow --check` | `/sync-workflow --update` if behind |
+| "Large feature, multiple agents" | `/brainstorm` → planner agent | Parallel handlers → reviewers → `/validate-change` → `/commit` |
 
 ## Sync Management
 
@@ -359,6 +399,7 @@ MCP templates are per-stack in `stacks/{stack}/.mcp.json.template`. `init.sh` me
 |--------|--------|--------|--------|
 | **pharos** | typescript-nestjs, python-fastapi | SYSPRO, Tempo MRP, PhX — live schema, KPI dashboards | Read/Write |
 | **context7** | all | Up-to-date documentation lookup for NestJS, FastAPI, Flutter, .NET | Read-only |
+| **chrome-devtools** | flutter-dart | Screenshot capture, visual regression, DOM inspection | Read-only |
 | **github** | typescript-nestjs | PR context, issue details during code review | Read-only |
 
 **Setup**: Set `PHAROS_TOKEN` and `GITHUB_TOKEN` environment variables before running `init.sh`. The generated `.mcp.json` is gitignored (contains tokens).
@@ -374,13 +415,15 @@ MCP templates are per-stack in `stacks/{stack}/.mcp.json.template`. `init.sh` me
 
 ### Visual Verification (flutter-dart)
 
-For UI work in Flutter, use the Chrome extension or DevTools MCP for screenshot-based verification:
+For UI work in Flutter, use the DevTools MCP server (auto-configured in flutter-dart stack) for screenshot-based verification:
 
 ```
 Edit widget → Hot reload → Screenshot → Compare to baseline → Iterate
 ```
 
 Baseline screenshots live in `docs/screenshots/`, named after the screen/component. `/validate-change` Layer 2 includes a visual check step for flutter-dart stacks.
+
+**Tools**: The `chrome-devtools` MCP server is included in the flutter-dart `.mcp.json.template`. Use `tools/screenshot_diff.sh <baseline> <current>` to compare screenshots via ImageMagick (exit 0 = match, exit 1 = diff).
 
 <!-- PROJECT: Add project-specific CLI tools here. -->
 

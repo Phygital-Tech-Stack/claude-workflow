@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.3.0] - 2026-03-10
+
+### Added
+- compaction_report.py tool: CLI summary of compaction history (#8)
+- Parallel agent invocation walkthrough and troubleshooting guide in WORKFLOW.md (#10)
+- Quick Reference scenario for parallel agent orchestration (#10)
+- chrome-devtools MCP server in flutter-dart .mcp.json.template (#11)
+- screenshot_diff.sh tool for ImageMagick-based visual regression (#11)
+- Agent memory starter templates for all 7 agents (#12)
+
+### Changed
+- init.sh copies agent memory templates to .claude/agent-memory/ on init (#12)
+- Visual verification section updated with DevTools MCP and screenshot_diff.sh (#11)
+- MCP server table updated with chrome-devtools entry (#11)
+- Compaction Analytics subsection added to Context Window Management (#8)
+
 ## [1.2.0] - 2026-03-09
 
 ### Added

@@ -90,6 +90,18 @@ for agent_file in "$MASTER_DIR/base/agents/"*.md; do
   cp "$agent_file" "$CLAUDE_DIR/agents/$agent_name"
 done
 
+# Copy agent memory templates (only if not already present)
+if [[ -d "$MASTER_DIR/base/agent-memory-templates" ]]; then
+  for tmpl in "$MASTER_DIR/base/agent-memory-templates/"*.md; do
+    agent_name=$(basename "$tmpl" .md)
+    target_dir="$CLAUDE_DIR/agent-memory/$agent_name"
+    mkdir -p "$target_dir"
+    if [[ ! -f "$target_dir/MEMORY.md" ]]; then
+      cp "$tmpl" "$target_dir/MEMORY.md"
+    fi
+  done
+fi
+
 # Copy base blueprints (skip excluded)
 for tmpl in "$MASTER_DIR/base/blueprints/"*.template.md; do
   basename_no_template=$(basename "$tmpl" .template.md)

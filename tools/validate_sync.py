@@ -76,31 +76,69 @@ class SyncValidator:
 
     def check_unresolved_placeholders(self):
         placeholder_re = re.compile(r"\{\{([A-Z_]+)\}\}")
-        # Only check managed files, not project-specific ones
-        skip_dirs = {"agent-memory", "progress", "__pycache__"}
-        skip_files = {"settings.local.json", "project-rules.txt"}
 
-        for root, dirs, files in os.walk(self.claude_dir):
-            dirs[:] = [d for d in dirs if d not in skip_dirs]
-            for fname in files:
-                if fname in skip_files or fname.endswith((".pyc", ".pyo")):
-                    continue
-                full = Path(root) / fname
-                rel = full.relative_to(self.claude_dir)
+        # Known workflow placeholders that MUST be resolved after init/sync.
+        # Anything not in this set is likely a project-owned runtime variable
+        # (e.g., shell template vars in deploy scripts) or documentation prose.
+        workflow_placeholders = {
+            "VERSION", "STACKS", "AGENT_NAMES",
+            "FORMAT_COMMAND", "ANALYZE_COMMAND", "TEST_COMMAND",
+            "BUILD_COMMAND", "WATCH_COMMAND", "TEST_FILE_CONVENTION",
+            "CRITICAL_FILES", "CLASSIFY_CATEGORIES", "AUTO_QUICK_PATTERNS",
+            "SCREENSHOT_COMMAND",
+        }
 
-                # Only check text files
-                if fname.endswith((".sh", ".md", ".json", ".yaml", ".yml", ".txt")):
-                    try:
-                        content = full.read_text(errors="replace")
-                    except Exception:
-                        continue
-                    matches = placeholder_re.findall(content)
-                    for m in matches:
-                        # SCREENSHOT_COMMAND in flutter-only docs is INFO, not BLOCK
-                        if m == "SCREENSHOT_COMMAND":
-                            self.info(f"{{{{SCREENSHOT_COMMAND}}}} unresolved in {rel} (flutter-only section)")
-                        else:
-                            self.block(f"{{{{{m}}}}} unresolved in {rel}")
+        # Only check files that are managed by the workflow (listed in
+        # workflow.lock).  Project-owned files such as skills/ and commands/
+        # may legitimately use {{PLACEHOLDER}} syntax for their own runtime
+        # substitution and must not be flagged.
+        lock_path = self.claude_dir / "workflow.lock"
+        if not lock_path.exists():
+            # No lock → nothing to validate against
+            return
+
+        try:
+            with open(lock_path) as f:
+                lock = json.load(f)
+        except Exception:
+            return
+
+        # Determine which files come from master vs project-owned.
+        # masterChecksums tracks files that have a master source — these are
+        # workflow-managed. Files in managed but NOT in masterChecksums are
+        # project-owned (added by generate_lock walking .claude/).
+        master_checksums = set(lock.get("masterChecksums", {}).keys())
+        managed_files = set(lock.get("managed", {}).keys())
+
+        for rel_str in managed_files:
+            # Skip the lock file itself and non-text files
+            if rel_str == "workflow.lock":
+                continue
+            full = self.claude_dir / rel_str
+            if not full.exists():
+                continue
+            if not rel_str.endswith((".sh", ".md", ".json", ".yaml", ".yml", ".txt")):
+                continue
+
+            try:
+                content = full.read_text(errors="replace")
+            except Exception:
+                continue
+
+            # Project-owned files (no master source) — skip entirely
+            if rel_str not in master_checksums:
+                continue
+
+            matches = placeholder_re.findall(content)
+            for m in matches:
+                if m not in workflow_placeholders:
+                    # Unknown placeholder in a master-sourced file — likely
+                    # documentation prose (e.g., "files contain {{PLACEHOLDER}}")
+                    self.info(f"{{{{{m}}}}} in {rel_str} (not a workflow placeholder)")
+                elif m == "SCREENSHOT_COMMAND":
+                    self.info(f"{{{{SCREENSHOT_COMMAND}}}} unresolved in {rel_str} (flutter-only section)")
+                else:
+                    self.block(f"{{{{{m}}}}} unresolved in {rel_str}")
 
     # ── Check 3: Hook file permissions ────────────────────────────────────
 

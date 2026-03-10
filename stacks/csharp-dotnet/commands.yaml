@@ -2,6 +2,7 @@ commands:
   FORMAT_COMMAND: "dotnet format"
   ANALYZE_COMMAND: "dotnet build --no-restore"
   TEST_COMMAND: "dotnet test"
+  WATCH_COMMAND: "dotnet watch test"
   TEST_FILE_CONVENTION: "Tests/<Namespace>/<Name>Tests.cs"
   BUILD_COMMAND: "dotnet build"
 

@@ -45,12 +45,14 @@ echo "    Projects dir: $PROJECTS_DIR"
 echo "    Dry run: $DRY_RUN"
 echo ""
 
-# Read projects from projects.json
+# Read projects from projects.json (skip self-hosted entries)
 PROJECTS=$(python3 -c "
 import json
 with open('$MASTER_DIR/projects.json') as f:
     data = json.load(f)
 for p in data['projects']:
+    if p.get('self'):
+        continue
     name = p['repo'].split('/')[-1]
     stacks = ','.join(p['stacks'])
     print(f\"{p['repo']}|{name}|{stacks}\")
@@ -65,7 +67,7 @@ SKIPPED=()
 
 generate_overrides_erp() {
   local claude_dir="$1"
-  cat > "$claude_dir/workflow.overrides.yaml" << 'YAML'
+  cat > "$claude_dir/workflow.overrides.yaml" << YAML
 # Claude Workflow Overrides — erp
 # Project-specific files excluded from master sync
 
@@ -106,7 +108,7 @@ YAML
 
 generate_overrides_phronesis() {
   local claude_dir="$1"
-  cat > "$claude_dir/workflow.overrides.yaml" << 'YAML'
+  cat > "$claude_dir/workflow.overrides.yaml" << YAML
 # Claude Workflow Overrides — phronesis
 # Project-specific files excluded from master sync
 

@@ -23,6 +23,8 @@ def main():
     parser.add_argument("--master-dir", required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--stacks", required=True)
+    parser.add_argument("--self", action="store_true", dest="self_mode",
+                        help="Self-mode: mark lock as self-hosted (symlinks to base/)")
     args = parser.parse_args()
 
     claude_dir = args.claude_dir
@@ -64,6 +66,8 @@ def main():
         "managed": managed,
         "masterChecksums": master_checksums,
     }
+    if args.self_mode:
+        lock["self"] = True
 
     lock_path = os.path.join(claude_dir, "workflow.lock")
     with open(lock_path, "w") as f:

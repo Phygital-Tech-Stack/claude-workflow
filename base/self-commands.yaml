@@ -1,0 +1,33 @@
+# Commands/placeholders for self-mode (dogfooding claude-workflow on itself).
+# Used by init.sh --self to compose settings.json without a stack.
+
+commands:
+  FORMAT_COMMAND: "ruff format"
+  ANALYZE_COMMAND: "ruff check"
+  TEST_COMMAND: "pytest tests/"
+  TEST_FILE_CONVENTION: "tests/test_<name>.py"
+  BUILD_COMMAND: "echo 'no build step'"
+  WATCH_COMMAND: "pytest tests/ --watch"
+
+critical_files:
+  - base/settings.base.json
+  - base/guards/
+  - tools/init.sh
+  - tools/sync.sh
+  - tools/drift_check.py
+  - tools/generate_lock.py
+  - version.json
+  - projects.json
+
+classify_categories:
+  - Base (base/)
+  - Tools (tools/)
+  - Stacks (stacks/)
+  - Tests (tests/)
+  - Docs (*.md, docs/)
+  - Config (version.json, projects.json)
+
+auto_quick_patterns:
+  - "*.md"
+  - "*.json"
+  - "*.yaml"

@@ -1,0 +1,1 @@
+../../../base/skills/brainstorm/reference.md

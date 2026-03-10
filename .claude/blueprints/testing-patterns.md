@@ -1,0 +1,1 @@
+../../base/blueprints/testing-patterns.template.md

@@ -1,0 +1,1 @@
+../../base/blueprints/coding-conventions.template.md

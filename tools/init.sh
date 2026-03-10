@@ -5,6 +5,7 @@ set -euo pipefail
 PROJECT_DIR=""
 STACKS=""
 CI_ENABLED=false
+SELF_MODE=false
 MASTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION=$(python3 -c "import json; print(json.load(open('$MASTER_DIR/version.json'))['version'])")
 
@@ -15,11 +16,22 @@ while [[ $# -gt 0 ]]; do
     --master) MASTER_DIR="$2"; shift 2 ;;
     --version) VERSION="$2"; shift 2 ;;
     --ci) CI_ENABLED=true; shift ;;
+    --self) SELF_MODE=true; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
 
-if [[ -z "$PROJECT_DIR" || -z "$STACKS" ]]; then
+# Self-mode: bootstrap the workflow repo on itself using symlinks
+if [[ "$SELF_MODE" == "true" ]]; then
+  PROJECT_DIR="$MASTER_DIR"
+  STACKS=""
+fi
+
+if [[ -z "$PROJECT_DIR" ]]; then
+  echo "Usage: init.sh --project <path> --stacks <stack1,stack2> [--ci] [--self]"
+  exit 1
+fi
+if [[ "$SELF_MODE" == "false" && -z "$STACKS" ]]; then
   echo "Usage: init.sh --project <path> --stacks <stack1,stack2> [--ci]"
   exit 1
 fi
@@ -60,100 +72,184 @@ is_excluded() {
   return 1  # not excluded
 }
 
-# 1. Copy base files
-echo "  Copying base files..."
-cp "$MASTER_DIR/base/WORKFLOW.md" "$CLAUDE_DIR/WORKFLOW.md"
-cp "$MASTER_DIR/base/hooks/"*.sh "$CLAUDE_DIR/hooks/"
-chmod +x "$CLAUDE_DIR/hooks/"*.sh
+# 1. Copy (or symlink in self-mode) base files
+if [[ "$SELF_MODE" == "true" ]]; then
+  echo "  Creating symlinks to base/ (self-mode)..."
 
-# Copy base skills (skip empty directories and excluded skills)
-for skill_dir in "$MASTER_DIR/base/skills/"*/; do
-  skill_name=$(basename "$skill_dir")
-  if is_excluded "skills/$skill_name/"; then
-    echo "    Skipping excluded skill: $skill_name"
-    continue
+  # WORKFLOW.md
+  ln -sf "../base/WORKFLOW.md" "$CLAUDE_DIR/WORKFLOW.md"
+
+  # Hooks
+  for hook in "$MASTER_DIR/base/hooks/"*.sh; do
+    ln -sf "../../base/hooks/$(basename "$hook")" "$CLAUDE_DIR/hooks/$(basename "$hook")"
+  done
+  # Failure patterns
+  if [[ -d "$MASTER_DIR/base/hooks/failure-patterns" ]]; then
+    mkdir -p "$CLAUDE_DIR/hooks/failure-patterns"
+    for fp in "$MASTER_DIR/base/hooks/failure-patterns/"*; do
+      ln -sf "../../../base/hooks/failure-patterns/$(basename "$fp")" "$CLAUDE_DIR/hooks/failure-patterns/$(basename "$fp")"
+    done
   fi
-  # Only copy if directory contains files
-  if compgen -G "$skill_dir"* > /dev/null 2>&1; then
+
+  # Skills
+  for skill_dir in "$MASTER_DIR/base/skills/"*/; do
+    skill_name=$(basename "$skill_dir")
     mkdir -p "$CLAUDE_DIR/skills/$skill_name"
-    cp "$skill_dir"* "$CLAUDE_DIR/skills/$skill_name/"
-  fi
-done
+    for skill_file in "$skill_dir"*; do
+      [[ -f "$skill_file" ]] || continue
+      ln -sf "../../../base/skills/$skill_name/$(basename "$skill_file")" "$CLAUDE_DIR/skills/$skill_name/$(basename "$skill_file")"
+    done
+  done
 
-# Copy base agents (skip excluded)
-for agent_file in "$MASTER_DIR/base/agents/"*.md; do
-  agent_name=$(basename "$agent_file")
-  if is_excluded "agents/$agent_name"; then
-    echo "    Skipping excluded agent: $agent_name"
-    continue
-  fi
-  cp "$agent_file" "$CLAUDE_DIR/agents/$agent_name"
-done
+  # Agents
+  for agent_file in "$MASTER_DIR/base/agents/"*.md; do
+    agent_name=$(basename "$agent_file")
+    ln -sf "../../base/agents/$agent_name" "$CLAUDE_DIR/agents/$agent_name"
+  done
 
-# Copy agent memory templates (only if not already present)
-if [[ -d "$MASTER_DIR/base/agent-memory-templates" ]]; then
-  for tmpl in "$MASTER_DIR/base/agent-memory-templates/"*.md; do
-    agent_name=$(basename "$tmpl" .md)
-    target_dir="$CLAUDE_DIR/agent-memory/$agent_name"
-    mkdir -p "$target_dir"
-    if [[ ! -f "$target_dir/MEMORY.md" ]]; then
-      cp "$tmpl" "$target_dir/MEMORY.md"
+  # Agent memory templates (only if not already present)
+  if [[ -d "$MASTER_DIR/base/agent-memory-templates" ]]; then
+    for tmpl in "$MASTER_DIR/base/agent-memory-templates/"*.md; do
+      agent_name=$(basename "$tmpl" .md)
+      target_dir="$CLAUDE_DIR/agent-memory/$agent_name"
+      mkdir -p "$target_dir"
+      if [[ ! -f "$target_dir/MEMORY.md" ]]; then
+        cp "$tmpl" "$target_dir/MEMORY.md"
+      fi
+    done
+  fi
+
+  # Blueprints
+  for tmpl in "$MASTER_DIR/base/blueprints/"*.template.md; do
+    basename_no_template=$(basename "$tmpl" .template.md)
+    ln -sf "../../base/blueprints/$(basename "$tmpl")" "$CLAUDE_DIR/blueprints/${basename_no_template}.md"
+  done
+
+else
+  echo "  Copying base files..."
+  cp "$MASTER_DIR/base/WORKFLOW.md" "$CLAUDE_DIR/WORKFLOW.md"
+  cp "$MASTER_DIR/base/hooks/"*.sh "$CLAUDE_DIR/hooks/"
+  chmod +x "$CLAUDE_DIR/hooks/"*.sh
+
+  # Copy base skills (skip empty directories and excluded skills)
+  for skill_dir in "$MASTER_DIR/base/skills/"*/; do
+    skill_name=$(basename "$skill_dir")
+    if is_excluded "skills/$skill_name/"; then
+      echo "    Skipping excluded skill: $skill_name"
+      continue
     fi
+    # Only copy if directory contains files
+    if compgen -G "$skill_dir"* > /dev/null 2>&1; then
+      mkdir -p "$CLAUDE_DIR/skills/$skill_name"
+      cp "$skill_dir"* "$CLAUDE_DIR/skills/$skill_name/"
+    fi
+  done
+
+  # Copy base agents (skip excluded)
+  for agent_file in "$MASTER_DIR/base/agents/"*.md; do
+    agent_name=$(basename "$agent_file")
+    if is_excluded "agents/$agent_name"; then
+      echo "    Skipping excluded agent: $agent_name"
+      continue
+    fi
+    cp "$agent_file" "$CLAUDE_DIR/agents/$agent_name"
+  done
+
+  # Copy agent memory templates (only if not already present)
+  if [[ -d "$MASTER_DIR/base/agent-memory-templates" ]]; then
+    for tmpl in "$MASTER_DIR/base/agent-memory-templates/"*.md; do
+      agent_name=$(basename "$tmpl" .md)
+      target_dir="$CLAUDE_DIR/agent-memory/$agent_name"
+      mkdir -p "$target_dir"
+      if [[ ! -f "$target_dir/MEMORY.md" ]]; then
+        cp "$tmpl" "$target_dir/MEMORY.md"
+      fi
+    done
+  fi
+
+  # Copy base blueprints (skip excluded)
+  for tmpl in "$MASTER_DIR/base/blueprints/"*.template.md; do
+    basename_no_template=$(basename "$tmpl" .template.md)
+    if is_excluded "blueprints/" || is_excluded "blueprints/${basename_no_template}.md"; then
+      echo "    Skipping excluded blueprint: ${basename_no_template}.md"
+      continue
+    fi
+    cp "$tmpl" "$CLAUDE_DIR/blueprints/${basename_no_template}.md"
   done
 fi
 
-# Copy base blueprints (skip excluded)
-for tmpl in "$MASTER_DIR/base/blueprints/"*.template.md; do
-  basename_no_template=$(basename "$tmpl" .template.md)
-  if is_excluded "blueprints/" || is_excluded "blueprints/${basename_no_template}.md"; then
-    echo "    Skipping excluded blueprint: ${basename_no_template}.md"
-    continue
+# 2. Apply stack overlays (skip in self-mode — no stack)
+if [[ "$SELF_MODE" == "false" ]]; then
+  IFS=',' read -ra STACK_ARRAY <<< "$STACKS"
+  for stack in "${STACK_ARRAY[@]}"; do
+    stack_dir="$MASTER_DIR/stacks/$stack"
+    if [[ ! -d "$stack_dir" ]]; then
+      echo "  WARNING: Stack '$stack' not found at $stack_dir"
+      continue
+    fi
+
+    echo "  Applying stack: $stack"
+
+    # Copy stack hooks
+    if [[ -d "$stack_dir/hooks" ]]; then
+      cp "$stack_dir/hooks/"* "$CLAUDE_DIR/hooks/" 2>/dev/null || true
+      chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
+    fi
+
+    # Copy failure patterns
+    if [[ -d "$stack_dir/failure-patterns" ]]; then
+      mkdir -p "$CLAUDE_DIR/hooks/failure-patterns"
+      cp "$stack_dir/failure-patterns/"* "$CLAUDE_DIR/hooks/failure-patterns/"
+    fi
+  done
+
+  # 3. Process .mcp.json.template files from stacks (preserve project-specific servers)
+  echo "  Processing MCP templates..."
+  python3 "$MASTER_DIR/tools/merge_mcp_templates.py" \
+    --stacks "$STACKS" \
+    --stacks-dir "$MASTER_DIR/stacks" \
+    --output "$PROJECT_DIR/.mcp.json" \
+    --preserve-existing || true
+
+  # Add .mcp.json to .gitignore if not already present
+  if [[ -f "$PROJECT_DIR/.gitignore" ]]; then
+    if ! grep -q "^\.mcp\.json$" "$PROJECT_DIR/.gitignore" 2>/dev/null; then
+      echo ".mcp.json" >> "$PROJECT_DIR/.gitignore"
+    fi
   fi
-  cp "$tmpl" "$CLAUDE_DIR/blueprints/${basename_no_template}.md"
-done
-
-# 2. Apply stack overlays
-IFS=',' read -ra STACK_ARRAY <<< "$STACKS"
-for stack in "${STACK_ARRAY[@]}"; do
-  stack_dir="$MASTER_DIR/stacks/$stack"
-  if [[ ! -d "$stack_dir" ]]; then
-    echo "  WARNING: Stack '$stack' not found at $stack_dir"
-    continue
-  fi
-
-  echo "  Applying stack: $stack"
-
-  # Copy stack hooks
-  if [[ -d "$stack_dir/hooks" ]]; then
-    cp "$stack_dir/hooks/"* "$CLAUDE_DIR/hooks/" 2>/dev/null || true
-    chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
-  fi
-
-  # Copy failure patterns
-  if [[ -d "$stack_dir/failure-patterns" ]]; then
-    mkdir -p "$CLAUDE_DIR/hooks/failure-patterns"
-    cp "$stack_dir/failure-patterns/"* "$CLAUDE_DIR/hooks/failure-patterns/"
-  fi
-done
-
-# 3. Process .mcp.json.template files from stacks (preserve project-specific servers)
-echo "  Processing MCP templates..."
-python3 "$MASTER_DIR/tools/merge_mcp_templates.py" \
-  --stacks "$STACKS" \
-  --stacks-dir "$MASTER_DIR/stacks" \
-  --output "$PROJECT_DIR/.mcp.json" \
-  --preserve-existing || true
-
-# Add .mcp.json to .gitignore if not already present
-if [[ -f "$PROJECT_DIR/.gitignore" ]]; then
-  if ! grep -q "^\.mcp\.json$" "$PROJECT_DIR/.gitignore" 2>/dev/null; then
-    echo ".mcp.json" >> "$PROJECT_DIR/.gitignore"
-  fi
+else
+  STACK_ARRAY=()
 fi
 
-# 4. Resolve {{PLACEHOLDER}} values from commands.yaml
-echo "  Resolving placeholders..."
-COMMANDS_JSON=$(python3 -c "
+# 4. Resolve {{PLACEHOLDER}} values
+if [[ "$SELF_MODE" == "true" ]]; then
+  # Self-mode: load commands from self-commands.yaml, do NOT resolve placeholders
+  # in .md files (they're symlinks to base/ — writing would corrupt master sources)
+  echo "  Loading self-mode commands (skipping placeholder resolution for symlinks)..."
+  COMMANDS_JSON=$(python3 -c "
+import os, yaml, json
+
+master_dir = '$MASTER_DIR'
+cmd_path = os.path.join(master_dir, 'base', 'self-commands.yaml')
+commands = {}
+if os.path.exists(cmd_path):
+    with open(cmd_path) as f:
+        data = yaml.safe_load(f) or {}
+    for key, val in data.get('commands', {}).items():
+        commands[key] = str(val)
+    for key in ('classify_categories', 'critical_files', 'auto_quick_patterns'):
+        if key in data:
+            val = data[key]
+            if isinstance(val, list):
+                commands[key.upper()] = ', '.join(str(v) for v in val)
+
+commands['VERSION'] = '$VERSION'
+commands['STACKS'] = 'self'
+print(json.dumps(commands))
+")
+else
+  echo "  Resolving placeholders..."
+  COMMANDS_JSON=$(python3 -c "
 import os, yaml, json, sys
 
 claude_dir = '$CLAUDE_DIR'
@@ -198,6 +294,7 @@ for root, dirs, files in os.walk(claude_dir):
 # Output commands as JSON for compose_settings.py
 print(json.dumps(commands))
 ")
+fi
 
 echo "  Composing settings.json..."
 PRESERVE_ARGS=()
@@ -218,16 +315,32 @@ python3 "$MASTER_DIR/tools/compose_settings.py" \
 # 5. Generate workflow.lock
 
 echo "  Generating workflow.lock..."
-python3 "$MASTER_DIR/tools/generate_lock.py" \
-  --claude-dir "$CLAUDE_DIR" \
-  --master-dir "$MASTER_DIR" \
-  --version "$VERSION" \
+LOCK_ARGS=(
+  --claude-dir "$CLAUDE_DIR"
+  --master-dir "$MASTER_DIR"
+  --version "$VERSION"
   --stacks "$STACKS"
+)
+if [[ "$SELF_MODE" == "true" ]]; then
+  LOCK_ARGS+=(--self)
+fi
+python3 "$MASTER_DIR/tools/generate_lock.py" "${LOCK_ARGS[@]}"
 
 # 6. Generate workflow.overrides.yaml
 
 if [[ -f "$CLAUDE_DIR/workflow.overrides.yaml" ]]; then
   echo "  Keeping existing workflow.overrides.yaml (already exists)"
+elif [[ "$SELF_MODE" == "true" ]]; then
+  echo "  Generating self-mode workflow.overrides.yaml..."
+  cat > "$CLAUDE_DIR/workflow.overrides.yaml" << EOF
+# Claude Workflow Overrides — self-mode (dogfooding)
+# .claude/ uses symlinks to base/ — no sync needed
+
+version: "$VERSION"
+stacks: []
+self: true
+exclude: []
+EOF
 else
   echo "  Generating workflow.overrides.yaml..."
   cat > "$CLAUDE_DIR/workflow.overrides.yaml" << EOF

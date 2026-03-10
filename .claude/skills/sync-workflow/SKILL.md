@@ -1,0 +1,1 @@
+../../../base/skills/sync-workflow/SKILL.md

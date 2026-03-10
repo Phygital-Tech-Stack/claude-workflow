@@ -1,0 +1,1 @@
+../../../base/skills/score-guardrails/SKILL.md

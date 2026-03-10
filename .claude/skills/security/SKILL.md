@@ -1,0 +1,1 @@
+../../../base/skills/security/SKILL.md

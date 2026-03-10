@@ -30,8 +30,59 @@ fi
 # Read lock info
 LOCK_VERSION=$(python3 -c "import json; print(json.load(open('$LOCK_PATH'))['version'])")
 STACKS=$(python3 -c "import json; print(','.join(json.load(open('$LOCK_PATH'))['stacks']))")
+IS_SELF=$(python3 -c "import json; print(json.load(open('$LOCK_PATH')).get('self', False))")
 MASTER_VERSION=$(python3 -c "import json; print(json.load(open('$MASTER_DIR/version.json'))['version'])")
 VERSION="$MASTER_VERSION"
+
+# Self-mode: .claude/ uses symlinks to base/ — only recompose settings
+if [[ "$IS_SELF" == "True" ]]; then
+  echo "Self-mode: .claude/ uses symlinks to base/. Re-composing settings only."
+
+  COMMANDS_JSON=$(python3 -c "
+import os, yaml, json
+master_dir = '$MASTER_DIR'
+cmd_path = os.path.join(master_dir, 'base', 'self-commands.yaml')
+commands = {}
+if os.path.exists(cmd_path):
+    with open(cmd_path) as f:
+        data = yaml.safe_load(f) or {}
+    for key, val in data.get('commands', {}).items():
+        commands[key] = str(val)
+    for key in ('classify_categories', 'critical_files', 'auto_quick_patterns'):
+        if key in data:
+            val = data[key]
+            if isinstance(val, list):
+                commands[key.upper()] = ', '.join(str(v) for v in val)
+commands['VERSION'] = '$VERSION'
+commands['STACKS'] = 'self'
+print(json.dumps(commands))
+")
+
+  PRESERVE_ARGS=()
+  if [[ -f "$CLAUDE_DIR/settings.json" ]]; then
+    PRESERVE_ARGS+=(--preserve-from "$CLAUDE_DIR/settings.json")
+  fi
+  python3 "$MASTER_DIR/tools/compose_settings.py" \
+    --base "$MASTER_DIR/base/settings.base.json" \
+    --guards "$MASTER_DIR/base/guards" \
+    --stacks "" \
+    --stacks-dir "$MASTER_DIR/stacks" \
+    --claude-dir "$CLAUDE_DIR" \
+    --overrides "$CLAUDE_DIR/workflow.overrides.yaml" \
+    --commands "$COMMANDS_JSON" \
+    --output "$CLAUDE_DIR/settings.json" \
+    "${PRESERVE_ARGS[@]}"
+
+  python3 "$MASTER_DIR/tools/generate_lock.py" \
+    --claude-dir "$CLAUDE_DIR" \
+    --master-dir "$MASTER_DIR" \
+    --version "$VERSION" \
+    --stacks "" \
+    --self
+
+  echo "Settings recomposed. Lock updated to v$VERSION."
+  exit 0
+fi
 
 echo "Syncing project at $PROJECT_DIR (pinned: v$LOCK_VERSION → v$VERSION, stacks: $STACKS)"
 

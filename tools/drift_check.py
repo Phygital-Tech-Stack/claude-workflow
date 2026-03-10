@@ -48,6 +48,35 @@ def main():
             # PyYAML not available, skip excludes
             pass
 
+    # Self-mode: symlinks to base/ — just verify symlinks exist
+    if lock.get("self"):
+        results = []
+        for rel_path in lock.get("managed", {}):
+            if rel_path == "workflow.lock":
+                continue
+            local_path = os.path.join(claude_dir, rel_path)
+            if not os.path.exists(local_path):
+                results.append({"file": rel_path, "status": "MISSING"})
+            elif os.path.islink(local_path):
+                results.append({"file": rel_path, "status": "CURRENT"})
+            else:
+                # Regular file (not a symlink) — still valid, just not linked
+                results.append({"file": rel_path, "status": "CURRENT"})
+
+        if args.format == "json":
+            print(json.dumps({"version": lock.get("version"), "self": True, "results": results}, indent=2))
+        else:
+            missing = [r for r in results if r["status"] == "MISSING"]
+            current = [r for r in results if r["status"] == "CURRENT"]
+            print(f"Workflow Drift Report (self-mode, v{lock.get('version')})")
+            print(f"  CURRENT:    {len(current)} files")
+            print(f"  MISSING:    {len(missing)} files")
+            if missing:
+                print("\nMISSING:")
+                for r in missing:
+                    print(f"  - {r['file']}")
+        sys.exit(1 if any(r["status"] != "CURRENT" for r in results) else 0)
+
     stacks = lock.get("stacks", [])
     version = lock.get("version", "0.0.0")
     commands = load_commands(args.master, stacks, version)

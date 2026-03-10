@@ -1,6 +1,13 @@
 {
   "projects": [
     {
+      "repo": "Phygital-Tech-Stack/claude-workflow",
+      "stacks": [],
+      "self": true,
+      "contact": "@ekkerd",
+      "ci_enabled": false
+    },
+    {
       "repo": "Phygital-Tech-Stack/erp",
       "stacks": ["typescript-nestjs"],
       "contact": "@ekkerd",

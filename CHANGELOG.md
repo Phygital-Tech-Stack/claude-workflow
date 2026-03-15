@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.4.4] - 2026-03-10
+
+### Added
+- TDD guard hook for csharp-dotnet stack
+
+### Fixed
+- scope-estimator guard false-positive on markdown design docs
+- Missing WATCH_COMMAND in csharp-dotnet stack commands.yaml
+
+## [1.4.3] - 2026-03-10
+
+### Fixed
+- sync_all.sh ordering — run fixups before validation
+
+## [1.4.2] - 2026-03-10
+
+### Fixed
+- Bash quoting issue in check-layer-imports guards across all stacks
+
+## [1.4.1] - 2026-03-10
+
+### Added
+- Guardrail gap remediation: D3 architecture boundary guards, D7 PostToolUse hooks, D19 compliance artifacts
+- Per-stack `check-layer-imports` guards for all 4 stacks (advisory)
+- typescript-nestjs PostToolUse hooks (prettier_format.sh, eslint_check.sh)
+- csharp-dotnet PostToolUse hook (dotnet_analyze.sh)
+- Base `check-file-size` guard with configurable soft/hard limits
+- `decisions.log.template` for structured decision logging
+- `co-authored-by` PostToolUse guard on git commit
+- OWASP ASI mapping document (ASI01–ASI10)
+- Skill token efficiency: moved tables to reference.md files
+
+### Fixed
+- dedup_hooks() in compose_settings.py — removes duplicate guards
+- drift_check.py now detects NEW files missing from project lock
+
 ## [1.4.0] - 2026-03-10
 
 ### Added

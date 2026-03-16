@@ -181,16 +181,27 @@ Create an empty progress file alongside the design doc:
 
 ## Phase 6: Handoff to Implementation
 
+See `docs/plans/LIFECYCLE.md` for the full stage system.
+
 **Path A: Implement now → Enter Plan Mode**
 
-- Confirm readiness
-- Enter Claude Code's native plan mode (EnterPlanMode) with the design doc as context
-- Do NOT re-explore approaches or re-validate the design
+1. Move design + progress files from `docs/plans/1-draft/` to `docs/plans/3-in-progress/`
+2. Update progress file: set `**Status**:` to `IN PROGRESS`, update `**Design**:` path
+3. Confirm readiness
+4. Enter Claude Code's native plan mode (EnterPlanMode) with the design doc as context
+5. Do NOT re-explore approaches or re-validate the design
 
 **Path B: Park for later**
 
-- Design is saved in `docs/plans/1-draft/`
-- User can return to it anytime
+1. Move design + progress files from `docs/plans/1-draft/` to `docs/plans/2-approved/`
+2. Update progress file: set `**Status**:` to `APPROVED`, update `**Design**:` path
+3. Inform user: "Design parked in `docs/plans/2-approved/`. Start a new session and enter Plan Mode to begin."
+
+**Resuming a parked plan**
+
+When entering Plan Mode with a design doc from `docs/plans/2-approved/`:
+1. Move design + progress files from `docs/plans/2-approved/` to `docs/plans/3-in-progress/`
+2. Update progress file: set `**Status**:` to `IN PROGRESS`, update `**Design**:` path
 
 ## Relationship with Plan Mode
 

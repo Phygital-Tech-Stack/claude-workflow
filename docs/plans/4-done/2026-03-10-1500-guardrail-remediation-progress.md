@@ -1,6 +1,6 @@
 # Progress: Guardrail Gap Remediation (D3, D7, D19)
 
-**Design**: docs/plans/4-archive/2026-03-10-1500-guardrail-remediation-design.md
+**Design**: docs/plans/4-done/2026-03-10-1500-guardrail-remediation-design.md
 **Status**: COMPLETE
 **Completed**: 2026-03-10
 

@@ -126,7 +126,7 @@ Step 4: Orchestrator merges findings
 |-------|------|----------|--------|
 | **Env/secrets guard** | command | Advisory | Warns on credentials/config files |
 | **Critical file guard** | prompt | Advisory | LLM judges if file is critical infrastructure |
-| **Quick-fix blocker** | command | **Blocker** | Blocks hack/workaround/temp-fix comments |
+| **Quick-fix guard** | command | Steering | Warns on hack/workaround/temp-fix comments |
 | **Prompt injection detector** | command | Advisory | Warns on injection patterns (OWASP ASI01) |
 | **Scope estimator** | prompt | Advisory | LLM warns on high blast radius changes (>5 files) |
 
@@ -227,7 +227,7 @@ Session Start                    Active Development                    Session E
 [UserPromptSubmit hook]         [PreToolUse guards]                    - Write progress file
   - Inject git branch/commit     - Guard secrets/env files             - Clean session state
   - Flag active progress         - Guard critical infra (prompt)
-  - Warn on dangerous patterns   - Block quick-fix markers
+  - Warn on dangerous patterns   - Steer on quick-fix markers
      |                           - Detect prompt injection
      v                           - Estimate change scope (prompt)
 [SubagentStart hook]
@@ -414,6 +414,9 @@ When an agent encounters a concern outside its domain, it **flags but does not f
 | "Commit my work" | `/commit` | — |
 | "This skill isn't working well" | `/writing-skills audit` | Fix → re-audit → `/commit` |
 | "How mature are my AI guardrails?" | `/score-guardrails` | Review gaps → `/brainstorm` to close them |
+| "Clean up after implementation" | `/simplify` | Review changed code for reuse, quality, efficiency → auto-fix |
+| "Bulk changes across files" | `/batch <instruction>` | Applies instruction to multiple files in one pass |
+| "Continuous background checks" | `/loop 20m /validate-change` | Runs command on interval — stop with `/loop stop` |
 | "Sync workflow from master" | `/sync-workflow --check` | `/sync-workflow --update` if behind |
 | "Large feature, multiple agents" | `Task(planner, ...)` | Parallel handlers → reviewers → `/validate-change` → `/commit` |
 
@@ -493,6 +496,41 @@ Claude Code can review PRs automatically via GitHub Actions or GitLab CI.
 4. Posts review comments with BLOCK/WARN/INFO severity
 
 > **Note**: CI review complements local `/validate-change` — it catches issues from PRs opened outside the workflow.
+
+## Scheduled Automation
+
+Claude Code's `/loop` command runs any prompt or slash command on a recurring interval — enabling continuous background validation without manual invocation.
+
+### Usage
+
+```
+/loop [interval] <command>    Start a recurring loop (default: 10m)
+/loop stop                    Stop the active loop
+```
+
+### Patterns
+
+| Pattern | Interval | Purpose |
+|---------|----------|---------|
+| `/loop 20m /validate-change` | 20 min | Continuous validation during implementation |
+| `/loop 30m /security scan` | 30 min | Periodic security checks during long sessions |
+| `/loop 15m /sync-workflow --check` | 15 min | Drift monitoring against master workflow |
+
+### When to Use
+
+- **Long implementation sessions** — catch regressions early without interrupting flow
+- **Security-sensitive work** — continuous scanning for leaked secrets or dependency issues
+- **Multi-session features** — monitor drift between your branch and master workflow
+
+### When NOT to Use
+
+- **Short tasks** — manual invocation is faster and cheaper
+- **High context usage (>70%)** — each loop iteration consumes tokens; prefer manual checks
+- **Token-constrained environments** — loops accumulate cost over time
+
+### Context Budget Warning
+
+Each loop iteration runs within the current conversation context. At 20-minute intervals over a 2-hour session, that's 6 invocations — plan your context budget accordingly. Use `/compact` between heavy loop iterations if context exceeds 60%.
 
 ## Reference
 

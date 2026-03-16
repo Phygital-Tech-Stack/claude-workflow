@@ -1,7 +1,3 @@
-#!/usr/bin/env bash
-# SubagentStart hook — inject project rules and agent memory into specialist agents
-
-exec "$(dirname "$0")/pyrun" - <<'PYTHON'
 import json, sys, os, re
 
 data = json.load(sys.stdin)
@@ -48,4 +44,3 @@ if os.path.exists(auto_mem_path):
         pass
 
 print(json.dumps({"additionalContext": rules + memory + auto_mem}))
-PYTHON

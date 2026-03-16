@@ -1,7 +1,3 @@
-#!/usr/bin/env bash
-# TeammateIdle hook — check for active plans with remaining work
-
-exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, os, sys, glob
 
 try:
@@ -30,5 +26,3 @@ if active:
     }))
 
 sys.exit(0)
-PYTHON
-)

@@ -1,8 +1,3 @@
-#!/usr/bin/env bash
-# PostToolUseFailure hook — suggest recovery when Bash commands fail
-# Loads stack-specific patterns from .claude/hooks/failure-patterns/
-
-exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, sys, os, importlib.util
 
 try:
@@ -49,5 +44,3 @@ if suggestions:
     print(json.dumps({"additionalContext": "[Recovery] " + "; ".join(suggestions)}))
 
 sys.exit(0)
-PYTHON
-)

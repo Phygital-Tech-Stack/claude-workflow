@@ -1,1 +1,0 @@
-../../base/hooks/teammate-idle.sh

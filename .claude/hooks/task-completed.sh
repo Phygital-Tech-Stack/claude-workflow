@@ -1,1 +1,0 @@
-../../base/hooks/task-completed.sh

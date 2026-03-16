@@ -1,8 +1,3 @@
-#!/usr/bin/env bash
-# PreCompact hook — log compaction events for debugging
-# Read-only observer: cannot modify Claude behavior, just records the event
-
-exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, os, sys
 from datetime import datetime
 
@@ -31,5 +26,3 @@ with open(log_file, "a") as f:
     f.write(f"[{timestamp}]{token_info} Compaction: {json.dumps(data)}\n")
 
 sys.exit(0)
-PYTHON
-)

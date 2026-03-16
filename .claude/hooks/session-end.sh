@@ -1,1 +1,0 @@
-../../base/hooks/session-end.sh

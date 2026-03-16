@@ -1,0 +1,1 @@
+../../base/hooks/pre-compact.py

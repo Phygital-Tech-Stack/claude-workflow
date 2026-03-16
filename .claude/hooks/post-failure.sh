@@ -1,1 +1,0 @@
-../../base/hooks/post-failure.sh

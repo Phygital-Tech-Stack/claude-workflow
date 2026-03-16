@@ -1,1 +1,0 @@
-../../base/hooks/mcp-security-scan.sh

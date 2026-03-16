@@ -22,12 +22,12 @@ assert_file_exists "$MOCK_PROJECT/.claude/workflow.overrides.yaml"
 assert_file_exists "$MOCK_PROJECT/.claude/WORKFLOW.md"
 
 # Base hooks
-assert_file_exists "$MOCK_PROJECT/.claude/hooks/session-start.sh"
-assert_file_exists "$MOCK_PROJECT/.claude/hooks/pre-compact.sh"
-assert_file_exists "$MOCK_PROJECT/.claude/hooks/post-failure.sh"
-assert_file_exists "$MOCK_PROJECT/.claude/hooks/task-completed.sh"
-assert_file_exists "$MOCK_PROJECT/.claude/hooks/subagent-start.sh"
-assert_file_exists "$MOCK_PROJECT/.claude/hooks/teammate-idle.sh"
+assert_file_exists "$MOCK_PROJECT/.claude/hooks/session-start.py"
+assert_file_exists "$MOCK_PROJECT/.claude/hooks/pre-compact.py"
+assert_file_exists "$MOCK_PROJECT/.claude/hooks/post-failure.py"
+assert_file_exists "$MOCK_PROJECT/.claude/hooks/task-completed.py"
+assert_file_exists "$MOCK_PROJECT/.claude/hooks/subagent-start.py"
+assert_file_exists "$MOCK_PROJECT/.claude/hooks/teammate-idle.py"
 
 # Stack hooks
 assert_file_exists "$MOCK_PROJECT/.claude/hooks/tdd-guard.sh"

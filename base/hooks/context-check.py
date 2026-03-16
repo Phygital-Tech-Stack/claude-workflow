@@ -1,8 +1,3 @@
-#!/usr/bin/env bash
-# UserPromptSubmit hook — warn when context window usage is high
-# Checks CLAUDE_CONTEXT_TOKENS_USED and CLAUDE_CONTEXT_WINDOW env vars
-
-exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, os, sys
 
 try:
@@ -44,5 +39,3 @@ elif pct >= 60:
     }))
 
 sys.exit(0)
-PYTHON
-)

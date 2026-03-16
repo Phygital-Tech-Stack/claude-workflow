@@ -1,0 +1,1 @@
+../../base/hooks/mcp-security-scan.py

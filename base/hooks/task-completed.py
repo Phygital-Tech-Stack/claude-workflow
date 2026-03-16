@@ -1,8 +1,3 @@
-#!/usr/bin/env bash
-# TaskCompleted hook — remind to validate when code files were modified
-# Non-blocking (exit 0) — provides context, does not gate completion
-
-exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, os, sys
 
 try:
@@ -32,5 +27,3 @@ if code_files:
     }))
 
 sys.exit(0)
-PYTHON
-)

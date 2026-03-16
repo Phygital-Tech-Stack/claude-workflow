@@ -1,1 +1,0 @@
-../../base/hooks/context-check.sh

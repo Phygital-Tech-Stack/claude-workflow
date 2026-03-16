@@ -1,1 +1,0 @@
-../../base/hooks/session-start.sh

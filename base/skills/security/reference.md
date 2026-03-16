@@ -98,10 +98,10 @@ grep -rn 'http://' <changed_files> | grep -v 'localhost' | grep -v '127.0.0.1' |
 | ASI02 | Sensitive Info Disclosure | PreToolUse guard: env-secrets | `.claude/settings.json` |
 | ASI03 | Supply Chain Vulnerabilities | `/security deps` + lock file verification | Lock file, `/security` skill |
 | ASI04 | Output Handling | Conventional commits + code review agent | `/commit` skill |
-| ASI05 | Improper Error Handling | PostToolUseFailure hook + error patterns | `.claude/hooks/post-failure.sh` |
+| ASI05 | Improper Error Handling | PostToolUseFailure hook + error patterns | `.claude/hooks/post-failure.py` |
 | ASI06 | Excessive Agency | `allowed-tools` in agent frontmatter | `.claude/agents/*.md` |
 | ASI07 | Inter-Agent Security | SubagentStart hook + tool restrictions | WORKFLOW.md ASI07 section |
-| ASI08 | Model Denial of Service | Context window efficiency + pre-compact hook | `.claude/hooks/pre-compact.sh` |
+| ASI08 | Model Denial of Service | Context window efficiency + pre-compact hook | `.claude/hooks/pre-compact.py` |
 | ASI09 | Metadata/Config Exploitation | Critical file guard + settings protection | Guard hooks |
 | ASI10 | Unaligned Behavior | Decision log + progress files + human-in-loop | `/validate-change` Layer 5 |
 

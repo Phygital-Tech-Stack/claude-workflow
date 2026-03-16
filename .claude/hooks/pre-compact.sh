@@ -1,1 +1,0 @@
-../../base/hooks/pre-compact.sh

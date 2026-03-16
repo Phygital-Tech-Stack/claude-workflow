@@ -1,8 +1,3 @@
-#!/usr/bin/env bash
-# SessionStart hook — inject active work context and git info at session startup
-# Outputs additionalContext JSON so Claude knows what's in progress
-
-exec "$(dirname "$0")/pyrun" - <<'PYTHON'
 import json, os, glob, subprocess, sys, time
 
 data = json.load(sys.stdin)
@@ -97,4 +92,3 @@ if parts:
     ctx += "\n" + "\n".join(parts)
 
 print(json.dumps({"additionalContext": ctx}))
-PYTHON

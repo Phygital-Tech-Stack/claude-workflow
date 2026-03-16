@@ -296,7 +296,7 @@ These artifacts persist outside the conversation context and survive compression
 
 ## Context Window Management
 
-Context fills fast, and performance degrades as it fills. The `context-check.sh` hook monitors usage automatically.
+Context fills fast, and performance degrades as it fills. The `context-check.py` hook monitors usage automatically.
 
 ### Compact Trigger Thresholds
 
@@ -475,7 +475,7 @@ MCP templates are per-stack in `stacks/{stack}/.mcp.json.template`. `init.sh` me
 
 **Setup**: Set `PHAROS_TOKEN` and `GITHUB_TOKEN` environment variables before running `init.sh`. The generated `.mcp.json` is gitignored (contains tokens).
 
-> **Security**: `mcp-security-scan.sh` runs at session start via `mcp-scan`. Requires `mcp-scan` (`pip install mcp-scan`). Findings are advisory — review before using MCP tools.
+> **Security**: `mcp-security-scan.py` runs at session start via `mcp-scan`. Requires `mcp-scan` (`pip install mcp-scan`). Findings are advisory — review before using MCP tools.
 
 ### CLI Tools (via Bash allowlist)
 

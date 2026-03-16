@@ -35,7 +35,7 @@ echo "  PASS: LOCAL-EDIT detected"
 
 echo "=== Test 3: MISSING detection ==="
 # Delete a managed file
-rm "$MOCK_PROJECT/.claude/hooks/pre-compact.sh"
+rm "$MOCK_PROJECT/.claude/hooks/pre-compact.py"
 OUTPUT=$("$MASTER_DIR/tools/diff.sh" --project "$MOCK_PROJECT" --master "$MASTER_DIR" 2>&1) && RC=0 || RC=$?
 if [[ $RC -eq 0 ]]; then
   echo "FAIL: Should detect drift after file deletion"

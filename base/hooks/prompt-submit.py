@@ -1,8 +1,3 @@
-#!/usr/bin/env bash
-# UserPromptSubmit hook — inject git context and active progress into every prompt
-# Runs before Claude processes the user's prompt
-
-exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, os, glob, subprocess, sys
 
 try:
@@ -66,5 +61,3 @@ if parts:
     print(json.dumps({"additionalContext": "\n".join(parts)}))
 
 sys.exit(0)
-PYTHON
-)

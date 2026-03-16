@@ -148,7 +148,7 @@ class SyncValidator:
             self.block("hooks/ directory missing")
             return
 
-        hook_files = sorted(hooks_dir.glob("*.sh"))
+        hook_files = sorted(hooks_dir.glob("*.sh")) + sorted(hooks_dir.glob("*.py"))
         pyrun = hooks_dir / "pyrun"
         if pyrun.exists():
             hook_files.append(pyrun)

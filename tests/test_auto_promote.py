@@ -20,7 +20,7 @@ def test_find_promote_candidates():
         "results": [
             {"file": "WORKFLOW.md", "status": "CURRENT"},
             {"file": "skills/commit/SKILL.md", "status": "LOCAL-EDIT", "master_source": "base/skills/commit/SKILL.md"},
-            {"file": "hooks/session-start.sh", "status": "LOCAL-EDIT", "master_source": "base/hooks/session-start.sh"},
+            {"file": "hooks/session-start.py", "status": "LOCAL-EDIT", "master_source": "base/hooks/session-start.py"},
             {"file": "hooks/ruff_format.sh", "status": "LOCAL-EDIT", "master_source": "stacks/python-fastapi/hooks/ruff_format.sh"},
             {"file": "settings.json", "status": "LOCAL-EDIT"},  # No master_source — composed file, skip
             {"file": "WORKFLOW.md", "status": "BEHIND"},
@@ -43,7 +43,7 @@ def test_no_candidates_when_no_local_edits():
         "version": "1.0.0",
         "results": [
             {"file": "WORKFLOW.md", "status": "CURRENT"},
-            {"file": "hooks/session-start.sh", "status": "BEHIND"},
+            {"file": "hooks/session-start.py", "status": "BEHIND"},
         ],
     }
 

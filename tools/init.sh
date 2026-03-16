@@ -80,7 +80,7 @@ if [[ "$SELF_MODE" == "true" ]]; then
   ln -sf "../base/WORKFLOW.md" "$CLAUDE_DIR/WORKFLOW.md"
 
   # Hooks
-  for hook in "$MASTER_DIR/base/hooks/"*.sh; do
+  for hook in "$MASTER_DIR/base/hooks/"*.py; do
     ln -sf "../../base/hooks/$(basename "$hook")" "$CLAUDE_DIR/hooks/$(basename "$hook")"
   done
   # pyrun (universal Python resolver — no .sh extension)
@@ -152,8 +152,7 @@ if [[ "$SELF_MODE" == "true" ]]; then
 else
   echo "  Copying base files..."
   cp "$MASTER_DIR/base/WORKFLOW.md" "$CLAUDE_DIR/WORKFLOW.md"
-  cp "$MASTER_DIR/base/hooks/"*.sh "$CLAUDE_DIR/hooks/"
-  chmod +x "$CLAUDE_DIR/hooks/"*.sh
+  cp "$MASTER_DIR/base/hooks/"*.py "$CLAUDE_DIR/hooks/"
   # pyrun (universal Python resolver — no .sh extension)
   if [[ -f "$MASTER_DIR/base/hooks/pyrun" ]]; then
     cp "$MASTER_DIR/base/hooks/pyrun" "$CLAUDE_DIR/hooks/pyrun"
@@ -250,7 +249,7 @@ if [[ "$SELF_MODE" == "false" ]]; then
     # Copy stack hooks
     if [[ -d "$stack_dir/hooks" ]]; then
       cp "$stack_dir/hooks/"* "$CLAUDE_DIR/hooks/" 2>/dev/null || true
-      chmod +x "$CLAUDE_DIR/hooks/"*.sh 2>/dev/null || true
+      chmod +x "$CLAUDE_DIR/hooks/"*.sh "$CLAUDE_DIR/hooks/"*.py 2>/dev/null || true
     fi
 
     # Copy failure patterns

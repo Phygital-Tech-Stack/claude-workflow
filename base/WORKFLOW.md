@@ -150,6 +150,7 @@ model_overrides:
 | **Quick-fix guard** | command | Steering | Warns on hack/workaround/temp-fix comments |
 | **Prompt injection detector** | command | Advisory | Warns on injection patterns (OWASP ASI01) |
 | **Scope estimator** | prompt | Advisory | LLM warns on high blast radius changes (>5 files) |
+| **MCP security scan** | command | **Blocker**/Advisory | Blocks if `mcp-scan` missing; warns on CVE findings |
 
 **Hook types**: `command` — deterministic shell/Python checks. `prompt` — LLM judgment without file access. `agent` — LLM with codebase read access (opt-in via stack overlays, heavy).
 
@@ -173,7 +174,7 @@ model_overrides:
 | Hook | Event Type | Purpose |
 |------|------------|---------|
 | **Session start** | SessionStart | Load progress context, inject git state, clean stale sessions |
-| **MCP security scan** | SessionStart | Scan `.mcp.json` for unvetted servers, missing auth tokens |
+| **MCP security scan** | SessionStart | Scan `.mcp.json` for known CVEs via `mcp-scan` |
 | **Prompt submit** | UserPromptSubmit | Inject git branch/commit, active progress, warn on dangerous patterns |
 | **Pre-compact** | PreCompact | Log compaction events for debugging |
 | **Subagent context** | SubagentStart | Inject project rules and agent memory into specialist agents |
@@ -473,6 +474,8 @@ MCP templates are per-stack in `stacks/{stack}/.mcp.json.template`. `init.sh` me
 | **github** | typescript-nestjs | PR context, issue details during code review | Read-only |
 
 **Setup**: Set `PHAROS_TOKEN` and `GITHUB_TOKEN` environment variables before running `init.sh`. The generated `.mcp.json` is gitignored (contains tokens).
+
+> **Security**: `mcp-security-scan.sh` runs at session start via `mcp-scan`. Requires `mcp-scan` (`npm install -g @anthropic/mcp-scan`). Findings are advisory — review before using MCP tools.
 
 ### CLI Tools (via Bash allowlist)
 

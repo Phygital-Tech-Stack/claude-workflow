@@ -1,7 +1,7 @@
 ---
 name: test-writer
 description: Write comprehensive tests for implemented features following TDD patterns.
-model: sonnet
+model: sonnet # execution-heavy: generates tests from patterns, cost-efficient
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 

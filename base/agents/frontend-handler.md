@@ -1,7 +1,7 @@
 ---
 name: frontend-handler
 description: Implement frontend components and screens following project conventions.
-model: sonnet
+model: sonnet # execution-heavy: implements UI against clear specs, cost-efficient
 allowed-tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 

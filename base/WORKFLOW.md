@@ -99,6 +99,27 @@ Step 4: Orchestrator merges findings
 
 > Projects can exclude unused agents via `workflow.overrides.yaml` → `exclude`.
 
+### Model Routing
+
+Agents use either **opus** (judgment-heavy) or **sonnet** (execution-heavy) based on their role:
+
+| Role Type | Model | Agents | Rationale |
+|-----------|-------|--------|-----------|
+| **Planning & review** | opus | planner, code-reviewer, security-reviewer | Requires nuanced judgment, architectural reasoning, risk assessment |
+| **Implementation** | sonnet | backend-handler, frontend-handler, test-writer, db-expert | Execution against clear specs; speed and cost efficiency matter |
+
+**Cost**: Opus is ~5x the cost of Sonnet. Default to Sonnet unless the task requires judgment that Sonnet consistently gets wrong.
+
+**Override per-project**: Set `model_overrides` in `workflow.overrides.yaml`:
+
+```yaml
+model_overrides:
+  code-reviewer: sonnet    # downgrade for cost-sensitive projects
+  test-writer: opus        # upgrade for complex test scenarios
+```
+
+**Fallback**: If the primary model is unavailable, agents fall back to the next available model in the same tier. No cross-tier fallback by default — a review agent should not silently downgrade to Sonnet.
+
 <!-- PROJECT: Add project-specific agents here. -->
 
 ### Core Skills
@@ -316,9 +337,12 @@ Step 1: /brainstorm <feature>
         ├── Presents 2+ approaches with trade-offs (Phase 3)
         ├── Walks through design in 200-300 word sections (Phase 4)
         ├── Saves design doc to docs/plans/1-draft/ (Phase 5)
-        └── Offers: implement now (plan mode) or park for later (Phase 6)
+        └── Phase 6 Handoff:
+            ├── Path A: Implement now → move to 3-in-progress/ → Plan Mode
+            └── Path B: Park for later → move to 2-approved/
 
 Step 2: Plan Mode (EnterPlanMode)
+        ├── If resuming from 2-approved/, move to 3-in-progress/ first
         ├── Check progress file for prior session state
         ├── Explores codebase for implementation details
         ├── Plans file-level changes
@@ -354,6 +378,7 @@ Step 6: /commit
         ├── Code review via code-reviewer agent
         ├── Stage + conventional commit
         ├── Update progress file if active
+        ├── Move completed plans: 3-in-progress/ → 4-done/
         └── Verify with git log
 ```
 
@@ -544,5 +569,10 @@ Each loop iteration runs within the current conversation context. At 20-minute i
 - **Decision log**: `.claude/decisions.log`
 - **Compaction log**: `.claude/compaction.log`
 - **Session progress**: `.claude/progress/`
+- **Plan lifecycle**: `docs/plans/LIFECYCLE.md`
+- **Draft plans**: `docs/plans/1-draft/`
+- **Approved plans**: `docs/plans/2-approved/`
 - **Active plans**: `docs/plans/3-in-progress/*-progress.md`
+- **Completed plans**: `docs/plans/4-done/`
+- **Abandoned plans**: `docs/plans/5-archive/`
 - **Blueprints**: `.claude/blueprints/`

@@ -1,7 +1,7 @@
 ---
 name: db-expert
 description: Database schema review and migration guidance.
-model: sonnet
+model: sonnet # execution-heavy: schema review against known patterns, cost-efficient
 allowed-tools: Read, Grep, Glob
 ---
 

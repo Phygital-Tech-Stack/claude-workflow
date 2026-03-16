@@ -1,7 +1,7 @@
 ---
 name: security-reviewer
 description: Security-focused code review for vulnerabilities and OWASP compliance.
-model: opus
+model: opus # judgment-heavy: risk assessment, vulnerability detection, OWASP compliance
 allowed-tools: Read, Grep, Glob
 ---
 

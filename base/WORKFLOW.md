@@ -173,13 +173,15 @@ model_overrides:
 | Hook | Event Type | Purpose |
 |------|------------|---------|
 | **Session start** | SessionStart | Load progress context, inject git state, clean stale sessions |
+| **MCP security scan** | SessionStart | Scan `.mcp.json` for unvetted servers, missing auth tokens |
 | **Prompt submit** | UserPromptSubmit | Inject git branch/commit, active progress, warn on dangerous patterns |
 | **Pre-compact** | PreCompact | Log compaction events for debugging |
 | **Subagent context** | SubagentStart | Inject project rules and agent memory into specialist agents |
+| **Subagent stop** | SubagentStop | Warn if subagent output is empty or contains failure indicators |
 | **Task completed** | TaskCompleted | Count modified code files, remind to validate |
 | **Failure handler** | PostToolUseFailure | Pattern-match errors, suggest recovery actions |
 | **Teammate idle** | TeammateIdle | Check for active plans with remaining work |
-| **Stop gate** | Stop | Warn if code files modified but not validated or committed |
+| **Session end** | SessionEnd | Warn on unvalidated/uncommitted code, log session metrics |
 
 ### Steering Philosophy
 
@@ -236,13 +238,14 @@ Curated prompt bundles for coordinated parallel agent orchestration. Teams compl
 Session Start                    Active Development                    Session End
      |                                  |                                  |
      v                                  v                                  v
-[SessionStart hook]             [PostToolUse hooks]                  [Stop hook]
+[SessionStart hook]             [PostToolUse hooks]                  [SessionEnd hook]
   - Read progress files          - Track files in session-files.txt   - Check for unvalidated code
   - Extract "Next Session        - Auto-validate source files         - Warn on uncommitted changes
-    Should" items                - Guard patterns & sizes
+    Should" items                - Guard patterns & sizes             - Log session metrics
   - Inject git branch +                                                    |
     last 3 commits                                                         v
   - Clean stale session files                                        [/commit skill]
+  - MCP security scan
      |                                  |                              - Read session-files.txt
      v                                  v                              - Stage tracked files
 [UserPromptSubmit hook]         [PreToolUse guards]                    - Write progress file

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """PostToolUse hook: Warn about incorrect Dart import ordering."""
 import json
 import sys

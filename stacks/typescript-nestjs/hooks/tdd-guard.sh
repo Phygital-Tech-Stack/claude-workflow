@@ -2,7 +2,7 @@
 # TDD Guard — blocks new service/controller/repository files without companion test
 # Stack: typescript-nestjs
 
-exec python3 <(cat <<'PYTHON'
+exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, sys, os
 
 try:

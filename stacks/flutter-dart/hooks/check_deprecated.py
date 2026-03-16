@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """PostToolUse hook: Warn about deprecated patterns in Dart files."""
 import json
 import sys

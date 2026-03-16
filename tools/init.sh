@@ -83,6 +83,10 @@ if [[ "$SELF_MODE" == "true" ]]; then
   for hook in "$MASTER_DIR/base/hooks/"*.sh; do
     ln -sf "../../base/hooks/$(basename "$hook")" "$CLAUDE_DIR/hooks/$(basename "$hook")"
   done
+  # pyrun (universal Python resolver — no .sh extension)
+  if [[ -f "$MASTER_DIR/base/hooks/pyrun" ]]; then
+    ln -sf "../../base/hooks/pyrun" "$CLAUDE_DIR/hooks/pyrun"
+  fi
   # Failure patterns
   if [[ -d "$MASTER_DIR/base/hooks/failure-patterns" ]]; then
     mkdir -p "$CLAUDE_DIR/hooks/failure-patterns"
@@ -150,6 +154,11 @@ else
   cp "$MASTER_DIR/base/WORKFLOW.md" "$CLAUDE_DIR/WORKFLOW.md"
   cp "$MASTER_DIR/base/hooks/"*.sh "$CLAUDE_DIR/hooks/"
   chmod +x "$CLAUDE_DIR/hooks/"*.sh
+  # pyrun (universal Python resolver — no .sh extension)
+  if [[ -f "$MASTER_DIR/base/hooks/pyrun" ]]; then
+    cp "$MASTER_DIR/base/hooks/pyrun" "$CLAUDE_DIR/hooks/pyrun"
+    chmod +x "$CLAUDE_DIR/hooks/pyrun"
+  fi
 
   # Copy base skills (skip empty directories and excluded skills)
   for skill_dir in "$MASTER_DIR/base/skills/"*/; do

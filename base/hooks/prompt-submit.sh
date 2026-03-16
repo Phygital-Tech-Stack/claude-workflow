@@ -2,7 +2,7 @@
 # UserPromptSubmit hook — inject git context and active progress into every prompt
 # Runs before Claude processes the user's prompt
 
-exec python3 <(cat <<'PYTHON'
+exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, os, glob, subprocess, sys
 
 try:

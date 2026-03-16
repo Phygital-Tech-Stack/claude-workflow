@@ -3,7 +3,7 @@
 # Replaces stop-gate.sh (Stop event) with SessionEnd event
 # Advisory only (exit 0) — does not block session end
 
-exec python3 <(cat <<'PYTHON'
+exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, os, glob, sys, subprocess
 from datetime import datetime
 

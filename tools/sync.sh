@@ -275,8 +275,8 @@ if r: print(r)
     if [[ -n "$SOURCE" ]]; then
       mkdir -p "$(dirname "$CLAUDE_DIR/$file")"
       cp "$SOURCE" "$CLAUDE_DIR/$file"
-      # Make shell scripts executable
-      if [[ "$file" == *.sh ]]; then
+      # Make hook scripts executable
+      if [[ "$file" == *.sh ]] || [[ "$(basename "$file")" == "pyrun" ]]; then
         chmod +x "$CLAUDE_DIR/$file"
       fi
       UPDATED=$((UPDATED + 1))

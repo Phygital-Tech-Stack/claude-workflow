@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """PostToolUse hook: Run dart analyze on edited Dart files."""
 import json
 import subprocess

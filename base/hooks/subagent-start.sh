@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SubagentStart hook — inject project rules and agent memory into specialist agents
 
-exec python3 - <<'PYTHON'
+exec "$(dirname "$0")/pyrun" - <<'PYTHON'
 import json, sys, os, re
 
 data = json.load(sys.stdin)

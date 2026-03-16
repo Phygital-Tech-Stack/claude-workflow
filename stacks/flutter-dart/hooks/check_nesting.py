@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """PostToolUse hook: Warn about deep widget nesting in build() methods."""
 import json
 import sys

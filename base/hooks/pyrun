@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Universal Python resolver — finds python3, py, or python
+PY=$(command -v python3 2>/dev/null \
+  || command -v py 2>/dev/null \
+  || command -v python 2>/dev/null)
+if [ -z "$PY" ]; then
+  echo '{"error":"No Python interpreter found (tried python3, py, python)"}' >&2
+  exit 1
+fi
+exec "$PY" "$@"

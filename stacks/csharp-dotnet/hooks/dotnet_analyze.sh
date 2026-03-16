@@ -4,7 +4,7 @@
 set -euo pipefail
 
 INPUT=$(cat)
-FILE_PATH=$(echo "$INPUT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
+FILE_PATH=$(echo "$INPUT" | "$(dirname "$0")/pyrun" -c "import json,sys; print(json.load(sys.stdin).get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
 
 [ -z "$FILE_PATH" ] && exit 0
 [[ "$FILE_PATH" != *.cs ]] && exit 0

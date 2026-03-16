@@ -25,7 +25,7 @@ SCAN_EXIT=$?
 
 # 4. Clean scan — no findings
 if [ $SCAN_EXIT -eq 0 ]; then
-  FINDING_COUNT=$(echo "$SCAN_OUTPUT" | python3 -c "
+  FINDING_COUNT=$(echo "$SCAN_OUTPUT" | "$(dirname "$0")/pyrun" -c "
 import sys, json
 try:
     data = json.load(sys.stdin)
@@ -42,7 +42,7 @@ fi
 
 # 5. Findings detected — inject as advisory context
 # Escape the output for JSON embedding
-ESCAPED_OUTPUT=$(echo "$SCAN_OUTPUT" | python3 -c "
+ESCAPED_OUTPUT=$(echo "$SCAN_OUTPUT" | "$(dirname "$0")/pyrun" -c "
 import sys, json
 raw = sys.stdin.read()
 print(json.dumps(raw)[1:-1])

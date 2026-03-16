@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """PostToolUse hook: Block screen files exceeding 1000 lines, warn above 600."""
 import json
 import sys

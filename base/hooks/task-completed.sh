@@ -2,7 +2,7 @@
 # TaskCompleted hook — remind to validate when code files were modified
 # Non-blocking (exit 0) — provides context, does not gate completion
 
-exec python3 <(cat <<'PYTHON'
+exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, os, sys
 
 try:

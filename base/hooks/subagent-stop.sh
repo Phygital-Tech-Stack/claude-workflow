@@ -3,7 +3,7 @@
 # Steer pattern: warns on empty/suspect output, never blocks
 # Advisory only (exit 0)
 
-exec python3 <(cat <<'PYTHON'
+exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, sys, re
 
 try:

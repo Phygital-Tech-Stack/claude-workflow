@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\nenv_files = ['.env', '.env.local', '.env.production', 'credentials', 'secrets', 'app_config.json', 'appsettings.json']\nif any(e in p for e in env_files):\n    print(json.dumps({'systemMessage': '[SECURITY] Editing credentials/config file. Ensure nothing sensitive is committed to git.'}))\nsys.exit(0)\n\""
+            "command": ".claude/hooks/pyrun -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\nenv_files = ['.env', '.env.local', '.env.production', 'credentials', 'secrets', 'app_config.json', 'appsettings.json']\nif any(e in p for e in env_files):\n    print(json.dumps({'systemMessage': '[SECURITY] Editing credentials/config file. Ensure nothing sensitive is committed to git.'}))\nsys.exit(0)\n\""
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nskip = ['node_modules', '.claude/', 'test/', '.md']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\nviolations = []\nqf = re.search(r'//\\s*(hack|workaround|band-?aid|quick\\s*fix|temp(orary)?\\s*fix|hotfix)\\b', content, re.IGNORECASE)\nif qf:\n    violations.append(qf.group(0).strip())\ntd = re.search(r'//\\s*(TODO|FIXME):\\s*(fix later|investigate later|come back|revisit|temporary)\\b', content, re.IGNORECASE)\nif td:\n    violations.append(td.group(0).strip())\nif violations:\n    print(json.dumps({'systemMessage': '[STEER] Detected ' + violations[0] + '. Quick-fix markers suggest a workaround rather than a root-cause fix. Consider addressing the underlying issue.'}))\n    sys.exit(0)\nsys.exit(0)\n\""
+            "command": ".claude/hooks/pyrun -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nskip = ['node_modules', '.claude/', 'test/', '.md']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\nviolations = []\nqf = re.search(r'//\\s*(hack|workaround|band-?aid|quick\\s*fix|temp(orary)?\\s*fix|hotfix)\\b', content, re.IGNORECASE)\nif qf:\n    violations.append(qf.group(0).strip())\ntd = re.search(r'//\\s*(TODO|FIXME):\\s*(fix later|investigate later|come back|revisit|temporary)\\b', content, re.IGNORECASE)\nif td:\n    violations.append(td.group(0).strip())\nif violations:\n    print(json.dumps({'systemMessage': '[STEER] Detected ' + violations[0] + '. Quick-fix markers suggest a workaround rather than a root-cause fix. Consider addressing the underlying issue.'}))\n    sys.exit(0)\nsys.exit(0)\n\""
           }
         ]
       },
@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nskip = ['.claude/settings.json', 'CLAUDE.md', 'SKILL.md', '.md', 'node_modules']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\npatterns = [\n    r'ignore\\s+(all\\s+)?previous\\s+instructions',\n    r'ignore\\s+(all\\s+)?above\\s+instructions',\n    r'you\\s+are\\s+now\\s+(a|an)',\n    r'system\\s*prompt\\s*:',\n    r'<\\s*system[_-]?prompt\\s*>',\n    r'IMPORTANT:\\s*override',\n    r'act\\s+as\\s+(root|admin|sudo)',\n]\nfor pat in patterns:\n    if re.search(pat, content, re.IGNORECASE):\n        print(json.dumps({'systemMessage': '[INJECTION] Potential prompt injection pattern detected. Review carefully (OWASP ASI01).'}))\n        break\nsys.exit(0)\n\""
+            "command": ".claude/hooks/pyrun -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nskip = ['.claude/settings.json', 'CLAUDE.md', 'SKILL.md', '.md', 'node_modules']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\npatterns = [\n    r'ignore\\s+(all\\s+)?previous\\s+instructions',\n    r'ignore\\s+(all\\s+)?above\\s+instructions',\n    r'you\\s+are\\s+now\\s+(a|an)',\n    r'system\\s*prompt\\s*:',\n    r'<\\s*system[_-]?prompt\\s*>',\n    r'IMPORTANT:\\s*override',\n    r'act\\s+as\\s+(root|admin|sudo)',\n]\nfor pat in patterns:\n    if re.search(pat, content, re.IGNORECASE):\n        print(json.dumps({'systemMessage': '[INJECTION] Potential prompt injection pattern detected. Review carefully (OWASP ASI01).'}))\n        break\nsys.exit(0)\n\""
           }
         ]
       },
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\ncritical = 'base/settings.base.json, base/guards/, tools/init.sh, tools/sync.sh, tools/drift_check.py, tools/generate_lock.py, version.json, projects.json'.split(',')\ncritical = [c.strip() for c in critical if c.strip()]\nif any(c in p for c in critical):\n    print(json.dumps({'systemMessage': '[GUARD] Critical infrastructure file (schema/routes/config). Run /validate-change after editing.'}))\nsys.exit(0)\n\""
+            "command": ".claude/hooks/pyrun -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\ncritical = 'base/settings.base.json, base/guards/, tools/init.sh, tools/sync.sh, tools/drift_check.py, tools/generate_lock.py, version.json, projects.json'.split(',')\ncritical = [c.strip() for c in critical if c.strip()]\nif any(c in p for c in critical):\n    print(json.dumps({'systemMessage': '[GUARD] Critical infrastructure file (schema/routes/config). Run /validate-change after editing.'}))\nsys.exit(0)\n\""
           }
         ]
       },
@@ -53,7 +53,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"\nimport json, sys, os\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\next_str = os.environ.get('WORKFLOW_CODE_EXTENSIONS', '.ts,.tsx,.py,.dart,.cs')\nextensions = tuple(e.strip() for e in ext_str.split(','))\nif p.endswith(extensions):\n    print(json.dumps({'systemMessage': '[REMIND] Source file modified. Run /validate-change before committing.'}))\nsys.exit(0)\n\""
+            "command": ".claude/hooks/pyrun -c \"\nimport json, sys, os\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\next_str = os.environ.get('WORKFLOW_CODE_EXTENSIONS', '.ts,.tsx,.py,.dart,.cs')\nextensions = tuple(e.strip() for e in ext_str.split(','))\nif p.endswith(extensions):\n    print(json.dumps({'systemMessage': '[REMIND] Source file modified. Run /validate-change before committing.'}))\nsys.exit(0)\n\""
           }
         ]
       },
@@ -62,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"\nimport json, sys, os\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\nif not p or 'session-files' in p:\n    sys.exit(0)\nsid = d.get('session_id', 'unknown')\ncwd = os.getcwd()\nrel = os.path.relpath(p, cwd) if p.startswith(cwd) else p\ntf = os.path.join(cwd, '.claude', f'session-files-{sid}.txt')\nexisting = set()\nif os.path.exists(tf):\n    with open(tf) as f:\n        existing = set(l.strip() for l in f if l.strip())\nif rel not in existing:\n    os.makedirs(os.path.dirname(tf), exist_ok=True)\n    with open(tf, 'a') as f:\n        f.write(rel + '\\n')\nsys.exit(0)\n\""
+            "command": ".claude/hooks/pyrun -c \"\nimport json, sys, os\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\nif not p or 'session-files' in p:\n    sys.exit(0)\nsid = d.get('session_id', 'unknown')\ncwd = os.getcwd()\nrel = os.path.relpath(p, cwd) if p.startswith(cwd) else p\ntf = os.path.join(cwd, '.claude', f'session-files-{sid}.txt')\nexisting = set()\nif os.path.exists(tf):\n    with open(tf) as f:\n        existing = set(l.strip() for l in f if l.strip())\nif rel not in existing:\n    os.makedirs(os.path.dirname(tf), exist_ok=True)\n    with open(tf, 'a') as f:\n        f.write(rel + '\\n')\nsys.exit(0)\n\""
           }
         ]
       }

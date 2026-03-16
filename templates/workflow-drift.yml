@@ -18,7 +18,7 @@ jobs:
         run: pip install pyyaml
       - name: Fetch master workflow
         run: |
-          VERSION=$(python3 -c "import json; print(json.load(open('.claude/workflow.lock'))['version'])")
+          VERSION=$(.claude/hooks/pyrun -c "import json; print(json.load(open('.claude/workflow.lock'))['version'])")
           git clone --depth 1 --branch "v$VERSION" \
             https://github.com/Phygital-Tech-Stack/claude-workflow.git /tmp/master
       - name: Run drift check

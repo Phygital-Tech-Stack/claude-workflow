@@ -336,10 +336,11 @@ print(json.dumps(commands))
   # Pre-validation fixups (must run before validate_sync.py)
   echo "  Running pre-validation fixups..."
   chmod +x "$project_dir/.claude/hooks/"*.sh 2>/dev/null || true
+  [[ -f "$project_dir/.claude/hooks/pyrun" ]] && chmod +x "$project_dir/.claude/hooks/pyrun"
   git add .claude/
   # Force executable bit in git index for all hook scripts
   # (lint-staged stash/restore can strip filesystem +x before commit)
-  for hook_file in .claude/hooks/*.sh; do
+  for hook_file in .claude/hooks/*.sh .claude/hooks/pyrun; do
     [[ -f "$hook_file" ]] && git update-index --chmod=+x "$hook_file" 2>/dev/null || true
   done
   # Untrack .mcp.json if it was previously tracked (contains credentials)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """PostToolUse hook: Auto-format Dart files after Edit/Write."""
 import json
 import subprocess

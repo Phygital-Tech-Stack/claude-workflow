@@ -2,7 +2,7 @@
 # PostToolUseFailure hook — suggest recovery when Bash commands fail
 # Loads stack-specific patterns from .claude/hooks/failure-patterns/
 
-exec python3 <(cat <<'PYTHON'
+exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
 import json, sys, os, importlib.util
 
 try:

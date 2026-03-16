@@ -148,7 +148,11 @@ class SyncValidator:
             self.block("hooks/ directory missing")
             return
 
-        for sh_file in sorted(hooks_dir.glob("*.sh")):
+        hook_files = sorted(hooks_dir.glob("*.sh"))
+        pyrun = hooks_dir / "pyrun"
+        if pyrun.exists():
+            hook_files.append(pyrun)
+        for sh_file in hook_files:
             # Check filesystem permission
             if not os.access(sh_file, os.X_OK):
                 self.warn(f"{sh_file.relative_to(self.claude_dir)} not executable on filesystem")

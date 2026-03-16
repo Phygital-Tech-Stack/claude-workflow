@@ -3,7 +3,7 @@
 # Runs before Claude processes the user's prompt
 
 exec python3 <(cat <<'PYTHON'
-import json, os, glob, subprocess, sys
+import json, os, glob, re, subprocess, sys
 
 try:
     data = json.load(sys.stdin)
@@ -45,10 +45,15 @@ if progress_files:
 
 # 3. Check for dangerous patterns in user prompt
 prompt_text = data.get("prompt", "")
-dangerous = ["delete all", "drop table", "drop database", "rm -rf /", "format c:"]
-for pattern in dangerous:
-    if pattern.lower() in prompt_text.lower():
-        parts.append(f"[WARN] Dangerous pattern detected: '{pattern}'. Proceed with caution.")
+dangerous_patterns = [
+    (r'\bdelete\s+all\b', 'delete all'),
+    (r'\bdrop\s+table\b', 'drop table'),
+    (r'\bdrop\s+database\b', 'drop database'),
+    (r'\brm\s+.*-r.*/', 'rm -rf /'),
+]
+for regex, label in dangerous_patterns:
+    if re.search(regex, prompt_text, re.IGNORECASE):
+        parts.append(f"[WARN] Dangerous pattern detected: '{label}'. Proceed with caution.")
         break
 
 if parts:

@@ -38,8 +38,9 @@ if os.path.isdir(auto_mem_dir):
     cwd = os.getcwd()
     # Match current project by checking if cwd path is encoded in directory name
     cwd_slug = cwd.replace("/", "-").lstrip("-")
-    for d in os.listdir(auto_mem_dir):
-        if cwd_slug not in d and cwd.replace("/", "-") not in d:
+    # Use exact prefix match to avoid reading unrelated project directories
+    for d in sorted(os.listdir(auto_mem_dir)):
+        if not (d == cwd_slug or d.startswith(cwd_slug + "-")):
             continue
         mem_path = os.path.join(auto_mem_dir, d, "memory", "MEMORY.md")
         if os.path.exists(mem_path):

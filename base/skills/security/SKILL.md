@@ -4,6 +4,7 @@ description: Use when scanning for security issues, checking dependencies, or au
 user-invocable: true
 argument-hint: [scan | deps | owasp]
 allowed-tools: Read, Grep, Glob, Bash
+model: opus
 ---
 
 # /security - Security Scanning & OWASP ASI Audit

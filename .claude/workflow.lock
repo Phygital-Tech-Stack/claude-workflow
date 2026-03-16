@@ -1,12 +1,12 @@
 {
-  "version": "1.4.4",
+  "version": "1.6.0",
   "stacks": [],
-  "lastSync": "2026-03-16T15:41:27.538324Z",
+  "lastSync": "2026-03-16T15:46:24.337890Z",
   "managed": {
-    "WORKFLOW.md": "sha256:9be8179d5c7d85fc2e804ddfc1760bd087381de20ff6674e99ca370c9d0f76fd",
+    "WORKFLOW.md": "sha256:57e6ea89ec820a7cc5aa2571dd66c4d4c9870b66688e68ef1ef695e16b223fdd",
     "settings.json": "sha256:ebbc63c142759250d8e66ca7083a1b2c66a2576778ff5ce922e8aa11ae56c694",
     "session-metrics.log": "sha256:041aad6d1962adeec8d80258a6ce8caa3911b3171d2eb3b9ca57f30368b49079",
-    "workflow.lock": "sha256:d159422164142548384ea3b03aac938636ab017e2445cef962144ad246c25398",
+    "workflow.lock": "sha256:251e037ea008271870ef60ad6482fac23665f271b0665f90cceb7948dec9309f",
     "workflow.overrides.yaml": "sha256:2e019fab1c58c99b7891118a3c419f8c7aa75bffdc5c259f6101373adc7d23af",
     "agents/frontend-handler.md": "sha256:5ea9876a5845ae544ca674007f3be123f0031689ba2ce3b5d15586336058bd9b",
     "agents/backend-handler.md": "sha256:8cbfb1820daf9aebecf0556188d5e0f73dfdc71e345a09c4b47d43e4b32913ac",
@@ -25,7 +25,7 @@
     "skills/tdd/SKILL.md": "sha256:ab709c7830ecdf82ae226a191dc051e2e551eb821a1bf0e44a2cae52448e8f86",
     "skills/score-guardrails/reference.md": "sha256:a4280089712ff7c35838c44e35299756d927221d5e9eca5798e1ee8ce9a9f1ee",
     "skills/score-guardrails/SKILL.md": "sha256:5373d2a169be483d25f446ccc97519c2f5dc62326ce931de9a13ebc0fc49fdcd",
-    "skills/security/reference.md": "sha256:793f675b985679e663db281b424e24a5c1a17bd763a7e34a2ee619020d674826",
+    "skills/security/reference.md": "sha256:4bc7c20d58fdf8edd4da2487d3399f98ff10e20b1aa97d926503421365f2afe9",
     "skills/security/SKILL.md": "sha256:ef22824dfcaf4cbec270430b3a85e9f99e2a99c72cc6adcdd6775b8ff5049a8b",
     "skills/brainstorm/reference.md": "sha256:b6ce38755e7010a9257faee1ca784a08d529ffde7d3c0e1dc8dca620d2c9d651",
     "skills/brainstorm/SKILL.md": "sha256:8d20cd94d1e7f06330513af62cdc6ee9471e8df7f325f16a9e324f47d4e78eb2",
@@ -54,7 +54,7 @@
     "hooks/subagent-stop.py": "sha256:d3601fe1b04200cc8115cb80d4c49e038956fc3233f09bbd327479bd7e82b902"
   },
   "masterChecksums": {
-    "WORKFLOW.md": "sha256:9be8179d5c7d85fc2e804ddfc1760bd087381de20ff6674e99ca370c9d0f76fd",
+    "WORKFLOW.md": "sha256:57e6ea89ec820a7cc5aa2571dd66c4d4c9870b66688e68ef1ef695e16b223fdd",
     "agents/frontend-handler.md": "sha256:5ea9876a5845ae544ca674007f3be123f0031689ba2ce3b5d15586336058bd9b",
     "agents/backend-handler.md": "sha256:8cbfb1820daf9aebecf0556188d5e0f73dfdc71e345a09c4b47d43e4b32913ac",
     "agents/security-reviewer.md": "sha256:01d5a625b752343b29957ba1a6d32c53561c39a87444a09c30b689dc255c4f34",
@@ -72,7 +72,7 @@
     "skills/tdd/SKILL.md": "sha256:ab709c7830ecdf82ae226a191dc051e2e551eb821a1bf0e44a2cae52448e8f86",
     "skills/score-guardrails/reference.md": "sha256:a4280089712ff7c35838c44e35299756d927221d5e9eca5798e1ee8ce9a9f1ee",
     "skills/score-guardrails/SKILL.md": "sha256:5373d2a169be483d25f446ccc97519c2f5dc62326ce931de9a13ebc0fc49fdcd",
-    "skills/security/reference.md": "sha256:793f675b985679e663db281b424e24a5c1a17bd763a7e34a2ee619020d674826",
+    "skills/security/reference.md": "sha256:4bc7c20d58fdf8edd4da2487d3399f98ff10e20b1aa97d926503421365f2afe9",
     "skills/security/SKILL.md": "sha256:ef22824dfcaf4cbec270430b3a85e9f99e2a99c72cc6adcdd6775b8ff5049a8b",
     "skills/brainstorm/reference.md": "sha256:b6ce38755e7010a9257faee1ca784a08d529ffde7d3c0e1dc8dca620d2c9d651",
     "skills/brainstorm/SKILL.md": "sha256:8d20cd94d1e7f06330513af62cdc6ee9471e8df7f325f16a9e324f47d4e78eb2",

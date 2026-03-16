@@ -55,6 +55,7 @@ Before asking questions: read relevant CLAUDE.md files, search codebase for rela
 
 - **See also**: `/tdd` for test-first implementation after plan approval
 - **See also**: `/validate-change` for validation after implementation
+- **See also**: `/ai-guardrails-audit` for verifying design docs don't drift from guardrails
 - **See also**: `/commit` for committing changes
 
 ## Pressure Tested

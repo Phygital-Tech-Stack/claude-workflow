@@ -34,11 +34,11 @@ Before writing any implementation code, design test cases covering:
 
 ### Phase 3: Write Failing Tests (RED)
 
-**Test file convention:** {{TEST_FILE_CONVENTION}}
+**Test file convention:** Tests/<Namespace>/<Name>Tests.cs
 
 Run tests to confirm they fail:
 ```bash
-{{TEST_COMMAND}}
+dotnet test
 ```
 
 See `reference.md` for test template and Arrange/Act/Assert pattern.
@@ -48,7 +48,7 @@ See `reference.md` for test template and Arrange/Act/Assert pattern.
 Write the minimum code to make tests pass. No gold-plating, no premature optimization, no extra features.
 
 ```bash
-{{TEST_COMMAND}}
+dotnet test
 ```
 
 ### Phase 5: Refactor (REFACTOR)
@@ -62,9 +62,9 @@ Return to Phase 3 for the next test case until all acceptance criteria are met.
 ### Phase 7: Final Verification
 
 ```bash
-{{TEST_COMMAND}}
-{{ANALYZE_COMMAND}}
-{{FORMAT_COMMAND}}
+dotnet test
+dotnet build --no-restore
+dotnet format
 ```
 
 ## TDD Checklist
@@ -81,6 +81,7 @@ Return to Phase 3 for the next test case until all acceptance criteria are met.
 - **Recommended after**: `/validate-change` to verify the completed TDD cycle
 - **See also**: `/commit` to commit the feature with tests
 - **See also**: `/brainstorm` for designing complex features before TDD
+- **See also**: `/security` for security-sensitive feature testing
 
 ## Pressure Tested
 

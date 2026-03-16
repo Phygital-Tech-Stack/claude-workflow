@@ -4,3 +4,4 @@ __pycache__/
 *.swp
 *.swo
 .claude/session-files-*.txt
+.claude/session-metrics.log

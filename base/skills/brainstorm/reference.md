@@ -63,6 +63,7 @@ Break the design into **200-300 word sections**, one per message. After each sec
 ### Validation Checkpoints
 
 After each section, use AskUserQuestion:
+
 ```
 [AskUserQuestion with options:
   - Looks good, continue to next section
@@ -121,9 +122,9 @@ mkdir -p docs/plans/1-draft
 
 ## File Structure & Sizing
 
-| File | Purpose | Estimated Lines | New/Modified |
-|------|---------|----------------|--------------|
-| (fill in) | | | |
+| File      | Purpose | Estimated Lines | New/Modified |
+| --------- | ------- | --------------- | ------------ |
+| (fill in) |         |                 |              |
 
 ### Reuse Assessment
 

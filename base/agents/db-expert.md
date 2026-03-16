@@ -21,9 +21,9 @@ Review database schema changes, migration files, and data access patterns. Advis
 
 ## Output Format
 
-| File | Finding | Severity | Recommendation |
-|------|---------|----------|----------------|
-| ... | ... | BLOCK/WARN/INFO | ... |
+| File | Finding | Severity        | Recommendation |
+| ---- | ------- | --------------- | -------------- |
+| ...  | ...     | BLOCK/WARN/INFO | ...            |
 
 ## Boundaries
 

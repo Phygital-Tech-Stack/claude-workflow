@@ -37,13 +37,13 @@ Before asking questions: read relevant CLAUDE.md files, search codebase for rela
 
 ### Phases 2-6 (see `reference.md` for full detail)
 
-| Phase | Goal | Output |
-|-------|------|--------|
+| Phase            | Goal                                                                | Output                  |
+| ---------------- | ------------------------------------------------------------------- | ----------------------- |
 | 2. Understanding | _Why_ before _what_ — purpose, scope, constraints, success criteria | Clear problem statement |
-| 3. Approaches | At least 2 options with trade-offs, effort, files touched | Chosen approach |
-| 4. Design | 200-300 word sections, validated incrementally | Approved design |
-| 5. Documentation | Save to `docs/plans/1-draft/YYYY-MM-DD-HHmm-<topic>-design.md` | Design doc committed |
-| 6. Handoff | Implement now (EnterPlanMode) or park for later | Next step decided |
+| 3. Approaches    | At least 2 options with trade-offs, effort, files touched           | Chosen approach         |
+| 4. Design        | 200-300 word sections, validated incrementally                      | Approved design         |
+| 5. Documentation | Save to `docs/plans/1-draft/YYYY-MM-DD-HHmm-<topic>-design.md`      | Design doc committed    |
+| 6. Handoff       | Implement now (EnterPlanMode) or park for later                     | Next step decided       |
 
 ## Key Rules
 
@@ -59,8 +59,8 @@ Before asking questions: read relevant CLAUDE.md files, search codebase for rela
 
 ## Pressure Tested
 
-| Scenario | Pressure Type | Skill Defense |
-|----------|--------------|---------------|
-| "Just build it, no need to brainstorm a simple button" | YAGNI test | Key Rules: "Small idea? Skip brainstorming" — skill self-selects out for trivial work |
-| "I've already decided the approach, just document it" | sunk cost | Phase 3 requires presenting at least 2 approaches with trade-offs before settling |
-| "Brainstorm this idea but also implement it now" | scope creep | Key Rules: "Never write implementation code" — design doc only, plan mode for implementation |
+| Scenario                                               | Pressure Type | Skill Defense                                                                                |
+| ------------------------------------------------------ | ------------- | -------------------------------------------------------------------------------------------- |
+| "Just build it, no need to brainstorm a simple button" | YAGNI test    | Key Rules: "Small idea? Skip brainstorming" — skill self-selects out for trivial work        |
+| "I've already decided the approach, just document it"  | sunk cost     | Phase 3 requires presenting at least 2 approaches with trade-offs before settling            |
+| "Brainstorm this idea but also implement it now"       | scope creep   | Key Rules: "Never write implementation code" — design doc only, plan mode for implementation |

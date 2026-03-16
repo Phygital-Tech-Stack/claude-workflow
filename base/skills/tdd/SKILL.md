@@ -27,6 +27,7 @@ Based on `$ARGUMENTS`, create user stories with acceptance criteria. Ask for cla
 ### Phase 2: Test Case Design
 
 Before writing any implementation code, design test cases covering:
+
 - **Happy path** — Normal operation
 - **Edge cases** — Boundary conditions, empty/null input
 - **Error scenarios** — Invalid input, network failure
@@ -34,11 +35,12 @@ Before writing any implementation code, design test cases covering:
 
 ### Phase 3: Write Failing Tests (RED)
 
-**Test file convention:** {{TEST_FILE_CONVENTION}}
+**Test file convention:** modules/<x>/**tests**/<x>.spec.ts
 
 Run tests to confirm they fail:
+
 ```bash
-{{TEST_COMMAND}}
+pnpm nx affected -t test
 ```
 
 See `reference.md` for test template and Arrange/Act/Assert pattern.
@@ -48,7 +50,7 @@ See `reference.md` for test template and Arrange/Act/Assert pattern.
 Write the minimum code to make tests pass. No gold-plating, no premature optimization, no extra features.
 
 ```bash
-{{TEST_COMMAND}}
+pnpm nx affected -t test
 ```
 
 ### Phase 5: Refactor (REFACTOR)
@@ -62,9 +64,9 @@ Return to Phase 3 for the next test case until all acceptance criteria are met.
 ### Phase 7: Final Verification
 
 ```bash
-{{TEST_COMMAND}}
-{{ANALYZE_COMMAND}}
-{{FORMAT_COMMAND}}
+pnpm nx affected -t test
+pnpm nx affected -t lint
+pnpm nx affected -t lint --fix
 ```
 
 ## TDD Checklist
@@ -84,8 +86,8 @@ Return to Phase 3 for the next test case until all acceptance criteria are met.
 
 ## Pressure Tested
 
-| Scenario | Pressure Type | Skill Defense |
-|----------|--------------|---------------|
-| "Write the feature first, we'll add tests after" | sunk cost + time | Workflow phases enforce test-first order: Phase 3 (RED) must precede Phase 4 (GREEN) |
-| "This is a one-line fix, TDD is overkill" | authority | Skill applies to "fixing bugs" — even one-line fixes get a regression test |
-| "The test is hard to write, just test manually" | exhaustion | Phase 2 designs test cases first; Phase 7 requires automated verification before completion |
+| Scenario                                         | Pressure Type    | Skill Defense                                                                               |
+| ------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------- |
+| "Write the feature first, we'll add tests after" | sunk cost + time | Workflow phases enforce test-first order: Phase 3 (RED) must precede Phase 4 (GREEN)        |
+| "This is a one-line fix, TDD is overkill"        | authority        | Skill applies to "fixing bugs" — even one-line fixes get a regression test                  |
+| "The test is hard to write, just test manually"  | exhaustion       | Phase 2 designs test cases first; Phase 7 requires automated verification before completion |

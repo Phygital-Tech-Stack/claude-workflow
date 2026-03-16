@@ -13,17 +13,17 @@ all_changed=$(echo -e "$changed\n$staged" | sort -u | grep -v '^$')
 
 ### Path-to-Check Mapping
 
-| Changed Path Pattern | Triggered Checks |
-|---------------------|-----------------|
-| `.claude/skills/*` | D1 |
-| `.claude/agents/*` | D2 |
-| `.claude/settings.json` | D3 |
-| Package manager configs | D4 |
-| Source directories | D5 |
-| `.mcp.json` | D6 |
-| `.claude/blueprints/*` | D7 |
-| `CLAUDE.md` | D1, D2, D3, D4, D5, D6, D7 |
-| `.claude/WORKFLOW.md` | D1, D2, D3 |
+| Changed Path Pattern    | Triggered Checks           |
+| ----------------------- | -------------------------- |
+| `.claude/skills/*`      | D1                         |
+| `.claude/agents/*`      | D2                         |
+| `.claude/settings.json` | D3                         |
+| Package manager configs | D4                         |
+| Source directories      | D5                         |
+| `.mcp.json`             | D6                         |
+| `.claude/blueprints/*`  | D7                         |
+| `CLAUDE.md`             | D1, D2, D3, D4, D5, D6, D7 |
+| `.claude/WORKFLOW.md`   | D1, D2, D3                 |
 
 If no paths match any pattern, all deterministic checks are SKIP and only the agentic layer runs.
 
@@ -127,11 +127,11 @@ Compare against documented blueprints in CLAUDE.md or WORKFLOW.md.
 
 ### Team Mode (3 Parallel Reviewers)
 
-| Reviewer | Focus | Prompt |
-|----------|-------|--------|
-| **Toolchain** | Do tool versions, build configs, and CI match documentation? | Review toolchain alignment |
-| **Conventions** | Do naming patterns and code style match documented conventions? | Review convention adherence |
-| **Coherence** | Do CLAUDE.md, WORKFLOW.md, and skills tell a consistent story? | Review cross-document coherence |
+| Reviewer        | Focus                                                           | Prompt                          |
+| --------------- | --------------------------------------------------------------- | ------------------------------- |
+| **Toolchain**   | Do tool versions, build configs, and CI match documentation?    | Review toolchain alignment      |
+| **Conventions** | Do naming patterns and code style match documented conventions? | Review convention adherence     |
+| **Coherence**   | Do CLAUDE.md, WORKFLOW.md, and skills tell a consistent story?  | Review cross-document coherence |
 
 ### Dedup Logic
 

@@ -51,8 +51,8 @@ Use `code-reviewer` subagent. Skip if `/validate-change` already ran this sessio
 ### 4. Format and Analyze
 
 ```bash
-{{FORMAT_COMMAND}}
-{{ANALYZE_COMMAND}}
+pnpm nx affected -t lint --fix
+pnpm nx affected -t lint
 ```
 
 ### 5. Stage and Commit
@@ -80,8 +80,8 @@ See `reference.md` for common mistakes and error handling.
 
 ## Pressure Tested
 
-| Scenario | Pressure Type | Skill Defense |
-|----------|--------------|---------------|
-| "Just commit everything, I'll review later" | time + sunk cost | Lattice check (Step 2.5) is a HARD GATE — blocks commit without `/validate-change` |
-| "Commit but skip validate-change, it passed yesterday" | authority | No manual skip flag; exception only for docs-only or session-tracking files |
-| "Amend the last commit with these unrelated changes" | scope creep | Session file tracking isolates changes; code review catches unrelated additions |
+| Scenario                                               | Pressure Type    | Skill Defense                                                                      |
+| ------------------------------------------------------ | ---------------- | ---------------------------------------------------------------------------------- |
+| "Just commit everything, I'll review later"            | time + sunk cost | Lattice check (Step 2.5) is a HARD GATE — blocks commit without `/validate-change` |
+| "Commit but skip validate-change, it passed yesterday" | authority        | No manual skip flag; exception only for docs-only or session-tracking files        |
+| "Amend the last commit with these unrelated changes"   | scope creep      | Session file tracking isolates changes; code review catches unrelated additions    |

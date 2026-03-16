@@ -12,35 +12,35 @@ After a successful commit, perform these in order:
 
 ## Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Using `--no-verify` | Fix the lint/type error, never skip hooks |
-| Pushing to main without confirming | Always confirm before pushing |
-| `git add .` / `git add -A` | Stage files by name |
-| Committing without /validate-change | Run /validate-change first — hard gate |
-| Committing `.env` or credentials | Exclude sensitive files, warn user |
-| Amending with unrelated changes | Session file tracking isolates changes; review catches drift |
+| Mistake                             | Fix                                                          |
+| ----------------------------------- | ------------------------------------------------------------ |
+| Using `--no-verify`                 | Fix the lint/type error, never skip hooks                    |
+| Pushing to main without confirming  | Always confirm before pushing                                |
+| `git add .` / `git add -A`          | Stage files by name                                          |
+| Committing without /validate-change | Run /validate-change first — hard gate                       |
+| Committing `.env` or credentials    | Exclude sensitive files, warn user                           |
+| Amending with unrelated changes     | Session file tracking isolates changes; review catches drift |
 
 ## Error Handling
 
-| Error | Action |
-|-------|--------|
-| **Lattice not run** | Block commit, tell user to run `/validate-change` |
-| **Lint fails** | Fix issue. NEVER use `--no-verify` |
-| **Secrets detected** | ABORT immediately. Do not commit under any circumstances |
-| **No changes** | Inform user, stop |
-| **Hook failure** | Investigate root cause. Never bypass with `--no-verify` |
-| **Merge conflict in staging** | Resolve conflicts before staging. Never force-add |
+| Error                         | Action                                                   |
+| ----------------------------- | -------------------------------------------------------- |
+| **Lattice not run**           | Block commit, tell user to run `/validate-change`        |
+| **Lint fails**                | Fix issue. NEVER use `--no-verify`                       |
+| **Secrets detected**          | ABORT immediately. Do not commit under any circumstances |
+| **No changes**                | Inform user, stop                                        |
+| **Hook failure**              | Investigate root cause. Never bypass with `--no-verify`  |
+| **Merge conflict in staging** | Resolve conflicts before staging. Never force-add        |
 
 ## Conventional Commit Types
 
-| Type | When to Use |
-|------|------------|
-| `feat` | New feature or capability |
-| `fix` | Bug fix |
-| `refactor` | Code restructuring without behavior change |
-| `style` | Formatting, whitespace, linting fixes |
-| `test` | Adding or updating tests |
-| `docs` | Documentation changes |
-| `chore` | Maintenance, dependency updates, config changes |
-| `perf` | Performance improvements |
+| Type       | When to Use                                     |
+| ---------- | ----------------------------------------------- |
+| `feat`     | New feature or capability                       |
+| `fix`      | Bug fix                                         |
+| `refactor` | Code restructuring without behavior change      |
+| `style`    | Formatting, whitespace, linting fixes           |
+| `test`     | Adding or updating tests                        |
+| `docs`     | Documentation changes                           |
+| `chore`    | Maintenance, dependency updates, config changes |
+| `perf`     | Performance improvements                        |

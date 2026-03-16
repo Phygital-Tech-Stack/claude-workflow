@@ -44,12 +44,23 @@ if progress_files:
     parts.append(f"[Active Progress] {name} — load with: Read {latest}")
 
 # 3. Check for dangerous patterns in user prompt
-prompt_text = data.get("prompt", "")
-dangerous = ["delete all", "drop table", "drop database", "rm -rf /", "format c:"]
-for pattern in dangerous:
-    if pattern.lower() in prompt_text.lower():
-        parts.append(f"[WARN] Dangerous pattern detected: '{pattern}'. Proceed with caution.")
-        break
+prompt_text = data.get("prompt", "").lower()
+dangerous = {
+    "delete all": "bulk deletion",
+    "drop table": "table drop",
+    "drop database": "database drop",
+    "drop schema": "schema drop",
+    "truncate table": "table truncation",
+    "rm -rf /": "recursive root delete",
+    "rm -rf ~": "recursive home delete",
+    "format c:": "disk format",
+    "git push --force main": "force-push to main",
+    "git push --force master": "force-push to master",
+    "reset --hard": "hard reset",
+}
+matched = [desc for pat, desc in dangerous.items() if pat in prompt_text]
+if matched:
+    parts.append(f"[WARN] Dangerous pattern(s) detected: {', '.join(matched)}. Proceed with caution.")
 
 if parts:
     print(json.dumps({"additionalContext": "\n".join(parts)}))

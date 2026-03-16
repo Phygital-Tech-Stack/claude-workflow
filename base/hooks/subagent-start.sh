@@ -31,26 +31,21 @@ if os.path.exists(memory_file):
         pass
 
 # Load project auto-memory if available (supplementary, lower priority)
-# Auto-memory dirs use sanitized cwd path as directory name
+# Use the known auto-memory path for the current project instead of scanning ~/.claude/projects/
 auto_mem = ""
-auto_mem_dir = os.path.join(os.path.expanduser("~"), ".claude", "projects")
-if os.path.isdir(auto_mem_dir):
-    cwd = os.getcwd()
-    # Match current project by checking if cwd path is encoded in directory name
-    cwd_slug = cwd.replace("/", "-").lstrip("-")
-    for d in os.listdir(auto_mem_dir):
-        if cwd_slug not in d and cwd.replace("/", "-") not in d:
-            continue
-        mem_path = os.path.join(auto_mem_dir, d, "memory", "MEMORY.md")
-        if os.path.exists(mem_path):
-            try:
-                with open(mem_path) as f:
-                    content = f.read().strip()
-                if content:
-                    auto_mem = "\n\n--- Auto-Memory (supplementary) ---\n" + content[:2000]
-                    break
-            except Exception:
-                pass
+cwd = os.getcwd()
+cwd_slug = cwd.replace("/", "-").lstrip("-")
+auto_mem_path = os.path.join(
+    os.path.expanduser("~"), ".claude", "projects", cwd_slug, "memory", "MEMORY.md"
+)
+if os.path.exists(auto_mem_path):
+    try:
+        with open(auto_mem_path) as f:
+            content = f.read().strip()
+        if content:
+            auto_mem = "\n\n--- Auto-Memory (supplementary) ---\n" + content[:2000]
+    except Exception:
+        pass
 
 print(json.dumps({"additionalContext": rules + memory + auto_mem}))
 PYTHON

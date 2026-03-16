@@ -22,7 +22,7 @@ with open(session_file) as f:
 ext_str = os.environ.get("WORKFLOW_CODE_EXTENSIONS", ".ts,.tsx,.py,.dart,.cs")
 extensions = tuple(e.strip() for e in ext_str.split(","))
 exclude = (".g.dart", ".freezed.dart", ".generated.ts")
-code_files = [f for f in files if f.endswith(extensions) and not f.endswith(exclude)]
+code_files = [fn for fn in files if fn.endswith(extensions) and not fn.endswith(exclude)]
 
 if not code_files:
     sys.exit(0)

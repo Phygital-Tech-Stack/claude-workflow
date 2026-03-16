@@ -1,0 +1,1 @@
+../../base/hooks/subagent-stop.sh

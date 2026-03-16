@@ -97,7 +97,7 @@
 |-------|----------|
 | 0 | No PreToolUse hooks |
 | 1 | 1 advisory hook (e.g., env warning) |
-| 2 | 2-3 hooks including at least one blocker |
+| 2 | 2-3 hooks including at least one enforcing guard (blocker or steering with downstream validation) |
 | 3 | Covers secrets, critical files, and quick-fix detection |
 | 4 | Adds prompt injection detection + stack-specific guards |
 | 5 | Full coverage + documented in WORKFLOW.md + tested + maintained |

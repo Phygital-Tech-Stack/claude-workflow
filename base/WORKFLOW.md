@@ -160,6 +160,25 @@ Step 4: Orchestrator merges findings
 | **Teammate idle** | TeammateIdle | Check for active plans with remaining work |
 | **Stop gate** | Stop | Warn if code files modified but not validated or committed |
 
+### Steering Philosophy
+
+Guards default to **steer, don't block** — warn the agent and let downstream validation catch unresolved issues.
+
+| Behavior | Output | Exit | When to use |
+|----------|--------|------|-------------|
+| **Steer** | `systemMessage` | 0 | Default for all guards |
+| **Block** | `decision: block` | 2 | Hard structural limits (file size), expensive-to-reverse changes |
+
+**Severity labels:**
+
+| Label | Meaning |
+|-------|---------|
+| `[STEER]` | Guidance — proceed with care |
+| `[GUARD]` | Infrastructure alert |
+| `[SECURITY]` | Security advisory |
+| `[BOUNDARY]` | Architecture violation |
+| `[ROOT-CAUSE] BLOCKED` | Hard stop (reserved for blockers) |
+
 ### Blueprints
 
 Deep-reference documents in `.claude/blueprints/` used by skills as authoritative sources:

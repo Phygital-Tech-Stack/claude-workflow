@@ -21,13 +21,10 @@ model: opus
 
 ## Core Principles
 
-1. **One question at a time** — Never overwhelm with multiple questions
-2. **Prefer multiple-choice** — Offer 2-3 options with trade-offs
-3. **YAGNI ruthlessly** — Challenge features that aren't immediately needed
-4. **Explore before settling** — Present at least 2 approaches with trade-offs
-5. **Validate incrementally** — Present design in digestible sections, confirm each
-6. **Code reads before opinions** — Examine actual codebase before assuming
-7. **Use AskUserQuestion for every question** — Never print a question as text. Always use AskUserQuestion with 2-4 options.
+1. **One question at a time** — Use AskUserQuestion with 2-4 options, never plain text
+2. **YAGNI ruthlessly** — Challenge features that aren't immediately needed
+3. **Explore before settling** — Present at least 2 approaches with trade-offs
+4. **Code reads before opinions** — Examine actual codebase before assuming
 
 ## The Process (6 Phases)
 

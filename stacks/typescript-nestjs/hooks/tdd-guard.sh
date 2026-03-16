@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# TDD Guard — blocks new service/controller/repository files without companion test
-# Stack: typescript-nestjs
+# TDD Guard — blocks new service/handler/repository files without companion test
+# Stack: Phlow (TypeScript services with src/ layout)
 
-exec python3 <(cat <<'PYTHON'
+exec py <(cat <<'PYTHON'
 import json, sys, os
 
 try:
@@ -13,14 +13,14 @@ except Exception:
 ti = data.get("tool_input", {})
 path = ti.get("file_path", "")
 
-# Only check Write operations in module source directories
-if not path or "modules/" not in path:
+# Only check Write operations in service source directories
+if not path or "/src/" not in path:
     sys.exit(0)
 if any(skip in path for skip in ["__tests__", "node_modules", ".spec.", ".test."]):
     sys.exit(0)
 
-# Check if this is a new service, controller, or repository file
-tdd_triggers = [".service.ts", ".controller.ts", ".repository.ts"]
+# Check if this is a new handler, service, or repository file
+tdd_triggers = [".handler.ts", ".service.ts", ".repository.ts"]
 if not any(path.endswith(t) for t in tdd_triggers):
     sys.exit(0)
 
@@ -28,7 +28,9 @@ if not any(path.endswith(t) for t in tdd_triggers):
 base = path.rsplit(".", 1)[0]  # Remove .ts
 test_patterns = [
     base.replace("/src/", "/__tests__/") + ".spec.ts",
+    base.replace("/src/", "/__tests__/") + ".test.ts",
     base + ".spec.ts",
+    base + ".test.ts",
 ]
 
 for tp in test_patterns:

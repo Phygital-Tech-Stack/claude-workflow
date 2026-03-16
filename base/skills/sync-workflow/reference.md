@@ -6,7 +6,7 @@
 
 ```bash
 MASTER_REPO="https://github.com/Phygital-Tech-Stack/claude-workflow.git"
-PINNED=$(python3 -c "import json; print(json.load(open('.claude/workflow.lock'))['version'])")
+PINNED=$(py -c "import json; print(json.load(open('.claude/workflow.lock'))['version'])")
 LATEST=$(git ls-remote --tags --sort=-v:refname "$MASTER_REPO" 'v*' | head -1 | sed 's/.*refs\/tags\/v//')
 ```
 
@@ -20,7 +20,7 @@ git clone --depth 1 --branch "v$LATEST" "$MASTER_REPO" /tmp/claude-workflow-mast
 ### Update lock file
 
 ```bash
-python3 -c "
+py -c "
 import json
 lock_path = '.claude/workflow.lock'
 with open(lock_path) as f:

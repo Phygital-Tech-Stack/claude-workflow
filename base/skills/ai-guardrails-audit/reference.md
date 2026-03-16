@@ -66,7 +66,7 @@ Compare agent files against documented agent tables in CLAUDE.md and WORKFLOW.md
 ### Source of Truth
 
 ```bash
-python3 -c "
+py -c "
 import json
 with open('.claude/settings.json') as f:
     data = json.load(f)
@@ -104,7 +104,7 @@ List source directories and compare against documented project structure in CLAU
 ### Source of Truth
 
 ```bash
-python3 -c "
+py -c "
 import json
 with open('.mcp.json') as f:
     data = json.load(f)

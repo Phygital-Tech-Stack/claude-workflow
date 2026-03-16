@@ -2,7 +2,7 @@
 # Stop hook — remind to validate if source files were modified this session
 # Advisory only (exit 0) — does not block stopping
 
-exec python3 <(cat <<'PYTHON'
+exec py <(cat <<'PYTHON'
 import json, os, glob, sys
 
 try:
@@ -19,9 +19,9 @@ with open(session_file) as f:
     files = [l.strip() for l in f if l.strip()]
 
 # Check for code file modifications
-ext_str = os.environ.get("WORKFLOW_CODE_EXTENSIONS", ".ts,.tsx,.py,.dart,.cs")
+ext_str = os.environ.get("WORKFLOW_CODE_EXTENSIONS", ".ts,.tsx,.py,.cs")
 extensions = tuple(e.strip() for e in ext_str.split(","))
-exclude = (".g.dart", ".freezed.dart", ".generated.ts")
+exclude = (".generated.ts",)
 code_files = [f for f in files if f.endswith(extensions) and not f.endswith(exclude)]
 
 if not code_files:

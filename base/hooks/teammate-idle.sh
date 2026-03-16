@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # TeammateIdle hook — check for active plans with remaining work
 
-exec python3 <(cat <<'PYTHON'
+exec py <(cat <<'PYTHON'
 import json, os, sys, glob
 
 try:

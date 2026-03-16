@@ -2,7 +2,7 @@
 # UserPromptSubmit hook — warn when context window usage is high
 # Checks CLAUDE_CONTEXT_TOKENS_USED and CLAUDE_CONTEXT_WINDOW env vars
 
-exec python3 <(cat <<'PYTHON'
+exec py <(cat <<'PYTHON'
 import json, os, sys
 
 try:

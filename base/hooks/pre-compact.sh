@@ -2,7 +2,7 @@
 # PreCompact hook — log compaction events for debugging
 # Read-only observer: cannot modify Claude behavior, just records the event
 
-exec python3 <(cat <<'PYTHON'
+exec py <(cat <<'PYTHON'
 import json, os, sys
 from datetime import datetime
 

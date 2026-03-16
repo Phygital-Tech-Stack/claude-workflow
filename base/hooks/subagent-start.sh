@@ -4,8 +4,9 @@
 exec python3 - <<'PYTHON'
 import json, sys, os
 
+import re
 data = json.load(sys.stdin)
-agent_name = data.get('agent_name', '')
+agent_name = re.sub(r'[^a-zA-Z0-9_-]', '', data.get('agent_name', ''))
 
 # Load project-specific rules
 rules = ""

@@ -9,7 +9,7 @@ allowed-tools: Read, Grep, Glob
 
 ## Purpose
 
-Review database schema changes, migration files, and data access patterns. Advise on performance, data integrity, and migration safety. Read-only — reports findings without modifying code.
+Review database schema changes, migration files, and data access patterns. Stack: Supabase (PostgreSQL with pgvector), Row-Level Security (RLS) policies, real-time subscriptions. Advise on performance, data integrity, and migration safety. Read-only — reports findings without modifying code.
 
 ## Review Checklist
 
@@ -28,6 +28,6 @@ Review database schema changes, migration files, and data access patterns. Advis
 ## Boundaries
 
 - **Read-only** — never modify files
-- Read schema files, migrations, and repository/DAO code
+- Read schema files, migrations, and service/data-access code
 - Flag migration risks and suggest safe alternatives
 - Escalate breaking schema changes to the orchestrator

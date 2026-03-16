@@ -9,7 +9,7 @@ allowed-tools: Read, Grep, Glob, Edit, Write, Bash
 
 ## Purpose
 
-Implement backend modules (services, controllers, repositories, DTOs) following the project's established patterns. Works from a planner's task description.
+Implement backend modules (routers, services, schemas) following the project's established patterns. Stack: FastAPI, Pydantic, async/await, Supabase client. Works from a planner's task description.
 
 ## Process
 

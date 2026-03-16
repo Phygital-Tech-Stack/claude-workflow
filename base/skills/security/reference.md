@@ -41,8 +41,6 @@ Language-specific patterns:
 |----------|---------|----------|
 | Python | `print(`, `breakpoint()`, `pdb.set_trace()` | WARNING |
 | TypeScript/JS | `console.log(`, `console.debug(`, `debugger` | WARNING |
-| Dart | `print(`, `debugPrint(` | WARNING |
-| C# | `Console.WriteLine(`, `Debug.Log(` | WARNING |
 
 **Exclude**: Test files, logging utilities.
 

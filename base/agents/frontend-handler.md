@@ -9,7 +9,7 @@ allowed-tools: Read, Grep, Glob, Edit, Write, Bash
 
 ## Purpose
 
-Implement frontend components, screens, and UI logic following the project's design system and conventions. Works from a planner's task description.
+Implement frontend components, screens, and UI logic following the project's conventions. Stack: React 18+, TypeScript (strict), Vite, functional components with hooks. Works from a planner's task description.
 
 ## Process
 
@@ -21,7 +21,7 @@ Implement frontend components, screens, and UI logic following the project's des
 ## Boundaries
 
 - Implement only within the assigned component/screen scope
-- Follow existing widget/component patterns and file structure
+- Follow existing component patterns and file structure
 - Do not modify test files — leave that to `test-writer`
 - Do not modify backend/API files — leave that to `backend-handler`
 - Never modify `.claude/` files

@@ -10,7 +10,8 @@ try:
 except Exception:
     sys.exit(0)
 
-sid = data.get("session_id", "unknown")
+import re
+sid = re.sub(r'[^a-zA-Z0-9_-]', '', data.get("session_id", "unknown"))
 session_file = os.path.join(".claude", f"session-files-{sid}.txt")
 if not os.path.exists(session_file):
     sys.exit(0)
@@ -19,9 +20,9 @@ with open(session_file) as f:
     files = [l.strip() for l in f if l.strip()]
 
 # Check for code file modifications
-ext_str = os.environ.get("WORKFLOW_CODE_EXTENSIONS", ".ts,.tsx,.py,.dart,.cs")
+ext_str = os.environ.get("WORKFLOW_CODE_EXTENSIONS", ".ts,.tsx,.py")
 extensions = tuple(e.strip() for e in ext_str.split(","))
-exclude = (".g.dart", ".freezed.dart", ".generated.ts")
+exclude = (".generated.ts",)
 code_files = [f for f in files if f.endswith(extensions) and not f.endswith(exclude)]
 
 if not code_files:

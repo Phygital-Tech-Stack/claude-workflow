@@ -74,6 +74,10 @@
           {
             "type": "command",
             "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/session-start.sh"
+          },
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/mcp-security-scan.sh"
           }
         ]
       }
@@ -145,12 +149,22 @@
         ]
       }
     ],
-    "Stop": [
+    "SubagentStop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/stop-gate.sh"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/subagent-stop.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/session-end.sh"
           }
         ]
       }

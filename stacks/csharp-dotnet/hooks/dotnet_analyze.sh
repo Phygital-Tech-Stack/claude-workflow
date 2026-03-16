@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# PostToolUse hook: Run Roslyn analyzers on C# files after edits.
+# PostToolUse hook: Format and analyze C# files after edits.
+# Combines dotnet format + Roslyn analysis in a single pass.
 set -euo pipefail
 
 INPUT=$(cat)
@@ -9,13 +10,15 @@ FILE_PATH=$(echo "$INPUT" | python3 -c "import json,sys; print(json.load(sys.std
 [[ "$FILE_PATH" != *.cs ]] && exit 0
 [ ! -f "$FILE_PATH" ] && exit 0
 
-# Skip if dotnet not available
 command -v dotnet >/dev/null 2>&1 || exit 0
 
-# Find the nearest .csproj
+# Step 1: Format
+dotnet format --include "$FILE_PATH" 2>/dev/null || true
+
+# Step 2: Find nearest .csproj and analyze
 DIR=$(dirname "$FILE_PATH")
 PROJ=""
-while [ "$DIR" != "/" ]; do
+while [ "$DIR" != "/" ] && [ "$DIR" != "." ]; do
     FOUND=$(find "$DIR" -maxdepth 1 -name "*.csproj" -print -quit 2>/dev/null || true)
     if [ -n "$FOUND" ]; then
         PROJ="$FOUND"

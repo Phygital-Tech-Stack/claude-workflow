@@ -62,6 +62,7 @@ See `reference.md` for ASI mapping, regulatory tables, and report template.
 
 - **See also**: `/validate-change` — includes security scan as Layer 3
 - **See also**: `/commit` — runs gitleaks pre-commit
+- **See also**: `/tdd` for writing security regression tests
 - **See also**: `/ai-guardrails-audit` — broader guardrail drift detection
 
 ## Pressure Tested

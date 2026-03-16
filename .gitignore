@@ -5,3 +5,4 @@ __pycache__/
 *.swo
 .claude/session-files-*.txt
 .claude/session-metrics.log
+.claude/compaction.log

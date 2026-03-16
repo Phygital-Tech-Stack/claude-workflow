@@ -13,7 +13,7 @@ session_file = os.path.join(".claude", f"session-files-{sid}.txt")
 code_files = []
 if os.path.exists(session_file):
     with open(session_file) as f:
-        files = [l.strip() for l in f if l.strip()]
+        files = [line.strip() for line in f if line.strip()]
     ext_str = os.environ.get("WORKFLOW_CODE_EXTENSIONS", ".ts,.tsx,.py,.dart,.cs")
     extensions = tuple(e.strip() for e in ext_str.split(","))
     exclude = (".g.dart", ".freezed.dart", ".generated.ts")

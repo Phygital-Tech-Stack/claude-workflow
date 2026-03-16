@@ -11,7 +11,7 @@ if not os.path.exists(session_file):
     sys.exit(0)
 
 with open(session_file) as f:
-    files = [l.strip() for l in f if l.strip()]
+    files = [line.strip() for line in f if line.strip()]
 
 # Read code extensions from env or use defaults
 ext_str = os.environ.get("WORKFLOW_CODE_EXTENSIONS", ".ts,.tsx,.py,.dart,.cs")

@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # SessionStart hook — scan .mcp.json for security vulnerabilities
-# Requires: mcp-scan (npm install -g @anthropic/mcp-scan)
-# Blocks if mcp-scan not installed; advisory on scan findings
+# Requires: mcp-scan (pip install mcp-scan)
+# Steer pattern: warns if mcp-scan not installed or findings detected
 
 # Consume stdin (Claude Code sends hook context via stdin)
 cat > /dev/null
 
 MCP_CONFIG=".mcp.json"
 
-# 1. Check mcp-scan is installed (global only, no npx fallback)
+# 1. Check mcp-scan is installed
 if ! command -v mcp-scan &>/dev/null; then
-  echo '{"decision":"block","reason":"[SECURITY] mcp-scan is not installed. MCP security scanning is required. Install with: npm install -g @anthropic/mcp-scan"}'
-  exit 2
+  echo '{"additionalContext":"[SECURITY] mcp-scan is not installed. Install with: pip install mcp-scan"}'
+  exit 0
 fi
 
 # 2. Check .mcp.json exists

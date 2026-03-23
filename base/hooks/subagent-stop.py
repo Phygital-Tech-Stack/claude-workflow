@@ -23,9 +23,9 @@ if not output or len(output.strip()) < 10:
 combined = (output or "") + (stderr or "")
 failure_patterns = [
     r"Traceback \(most recent call last\)",
-    r"(?i)error:\s",
-    r"(?i)timed?\s*out",
-    r"(?i)I couldn'?t",
+    r"(?i)^error:\s",
+    r"(?i)(?:task|operation|request)\s+timed?\s*out",
+    r"(?i)I couldn'?t complete",
     r"(?i)I was unable to",
     r"(?i)failed to complete",
 ]

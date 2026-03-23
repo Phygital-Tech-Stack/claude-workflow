@@ -1,6 +1,9 @@
 import json, sys, os, re
 
-data = json.load(sys.stdin)
+try:
+    data = json.load(sys.stdin)
+except (json.JSONDecodeError, ValueError):
+    sys.exit(0)
 agent_name = re.sub(r'[^a-zA-Z0-9_-]', '', data.get('agent_name', ''))
 
 # Load project-specific rules

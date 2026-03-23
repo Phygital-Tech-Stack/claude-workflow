@@ -1,9 +1,12 @@
-import json, os, glob, subprocess, sys, time
+import json, os, glob, re, subprocess, sys, time
 
-data = json.load(sys.stdin)
+try:
+    data = json.load(sys.stdin)
+except (json.JSONDecodeError, ValueError):
+    sys.exit(0)
 
 # Persist session_id as env var for Bash commands (used by /commit)
-session_id = data.get('session_id', '')
+session_id = re.sub(r'[^a-zA-Z0-9_\-]', '', data.get('session_id', ''))
 env_file = os.environ.get('CLAUDE_ENV_FILE', '')
 if session_id and env_file:
     with open(env_file, 'a') as f:

@@ -36,7 +36,15 @@ Batch audit all skills in `.claude/skills/`. Output summary table with scores an
 
 ## Audit Rubric (7 Dimensions, 0-5 each)
 
-Dimensions: **CSO**, **Structure**, **Token Efficiency**, **Frontmatter**, **Actionability**, **Cross-refs**, **Testing**. See `reference.md` for detailed scoring criteria per dimension.
+| # | Dimension | 5 (Excellent) | 3 (Adequate) | 0 (Missing) |
+|---|-----------|---------------|--------------|-------------|
+| 1 | **CSO** | "Use when..." + symptoms, NO workflow summary | Has description but summarizes | Missing or generic |
+| 2 | **Structure** | Overview, when-to-use, core pattern, quick ref | Some sections, inconsistent | Wall of text |
+| 3 | **Token Efficiency** | <500 words, heavy ref in separate files | <800 words, some bloat | >1000 words |
+| 4 | **Frontmatter** | name + description + allowed-tools, all correct | Has most fields | Missing |
+| 5 | **Actionability** | Concrete steps, real commands, actual file paths | Mix of concrete and vague | Abstract only |
+| 6 | **Cross-refs** | Explicit "REQUIRED: /skill" or "See: /skill" | Mentions informally | Isolated |
+| 7 | **Testing** | Baseline tested, pressure scenarios documented | Informally tested | Never tested |
 
 **Bands**: 28-35 Production | 21-27 Polish | 14-20 Gaps | 0-13 Rewrite
 
@@ -76,6 +84,7 @@ Dimensions: **CSO**, **Structure**, **Token Efficiency**, **Frontmatter**, **Act
 - **See also**: `/brainstorm` for designing the feature a skill will support
 - **See also**: `/ai-guardrails-audit` for verifying skill changes don't drift from docs
 - **See also**: `/commit` for committing skill changes after edits
+- **See also**: `/score-guardrails` for measuring guardrail maturity after skill improvements
 
 ## Pressure Tested
 

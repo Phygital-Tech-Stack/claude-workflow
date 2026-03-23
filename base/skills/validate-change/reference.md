@@ -6,17 +6,17 @@
 
 ```bash
 # Check formatting on changed files (non-destructive)
-{{FORMAT_COMMAND}} --check <changed_files>
+dart format --check <changed_files>
 
 # Auto-fix formatting (if check fails)
-{{FORMAT_COMMAND}} <changed_files>
+dart format <changed_files>
 ```
 
 ### Static Analysis
 
 ```bash
 # Run analysis on changed directories
-{{ANALYZE_COMMAND}}
+flutter analyze lib/ --no-fatal-infos && dart analyze phast_backend/lib/
 ```
 
 ## Layer 2: Semantic — Full Commands
@@ -25,7 +25,7 @@
 
 ```bash
 # Run tests
-{{TEST_COMMAND}}
+flutter test && cd phast_backend && dart test
 ```
 
 ### Cross-Boundary Impact Trace
@@ -40,7 +40,7 @@ When shared files change, identify all consumers and verify they still compile/p
 ### Visual Verification (flutter-dart only)
 
 When UI files (widgets, screens, pages) are changed in a flutter-dart stack:
-1. Take a screenshot: `{{SCREENSHOT_COMMAND}}`
+1. Take a screenshot: `flutter screenshot --type=device --out=docs/screenshots/`
 2. Compare against baseline in `docs/screenshots/` if available
 3. Flag visual regressions for human review (Layer 5)
 
@@ -157,7 +157,7 @@ Quick mode is **auto-detected**, not user-selected.
 
 ### Auto-Quick Criteria (ALL must be true)
 
-- Changed files are ONLY: {{AUTO_QUICK_PATTERNS}}
+- Changed files are ONLY: *_test.dart, *.md, *.json
 - No files in critical source directories
 - Fewer than 3 files changed
 - No new files created
@@ -195,6 +195,114 @@ Run Layers 1-2 only. Note in verdict: `(auto-quick: docs/test-only change)`.
 | 4-Agentic | Code Review | PASS | 0 BLOCK, 0 WARN |
 
 Ready for /commit.
+```
+
+## Delegation Pattern
+
+### L1-L3 Agent Prompt Template
+
+Spawn with `Agent(subagent_type: "general-purpose", model: "sonnet")` and the following prompt:
+
+```
+You are running validation layers L1-L3 for the Phast project. Execute each layer in order. Stop on first FAIL.
+
+## Changed Files
+{changed_file_list}
+
+## Classification
+{frontend|backend|packages|tests|config|docs}
+
+## Layer 1: Deterministic
+
+### 1a. Format Check
+Run: dart format --set-exit-if-changed {changed_dart_files}
+If FAIL: run `dart format {changed_dart_files}` to auto-fix, then re-check.
+
+### 1b. Static Analysis
+If frontend changed: flutter analyze lib/ --no-fatal-infos
+If backend changed: dart analyze phast_backend/lib/
+If packages changed: dart analyze packages/{package_name}/
+
+### 1c. Build Runner
+If any file matches (tables.dart, *.drift): run `dart run build_runner build --delete-conflicting-outputs`
+
+## Layer 2: Semantic
+
+### 2a. Tests
+If frontend changed: flutter test --no-pub
+If backend changed: (cd phast_backend && dart test)
+If packages changed: (cd packages/{package_name} && dart test)
+
+### 2b. TDD Coverage Check
+For each changed implementation file (lib/, phast_backend/lib/, packages/*/lib/):
+- Exclude generated files (*.g.dart, *.freezed.dart, *.drift.dart)
+- Exclude entry points (main.dart, server.dart), route files, barrel files
+- Map: lib/foo/bar.dart → test/foo/bar_test.dart
+- Map: phast_backend/lib/x.dart → phast_backend/test/x_test.dart
+- Map: packages/pkg/lib/src/x.dart → packages/pkg/test/src/x_test.dart
+Severity:
+- New impl file, no test file exists → BLOCK
+- Existing impl changed, test not changed → WARN
+
+### 2c. Cross-Boundary Trace
+If packages/ changed, verify consumers rebuild:
+- phast_models → flutter analyze lib/ + dart analyze phast_backend/lib/ + flutter analyze phast_admin/lib/
+- phast_api_client → flutter analyze lib/ + flutter analyze phast_admin/lib/
+- phast_utils → dart analyze phast_backend/lib/
+- phast_auth → flutter analyze lib/ + flutter analyze phast_admin/lib/
+
+## Layer 3: Security
+
+### 3a. Secret Scanning
+Run: gitleaks detect --no-git -c .gitleaks.toml --source . 2>&1
+
+### 3b. Deprecated Pattern Scan
+Search changed files for:
+| Pattern | Replacement | Severity |
+|---------|-------------|----------|
+| withOpacity( | withValues(alpha: | FAIL |
+| SysproApiClient | UnifiedSysproClient | FAIL |
+| EmployeeAuthService | EmployeeAuthFacade | FAIL |
+| SyncService | BackgroundTaskService | FAIL |
+| SysproConfig | BackendConfig | FAIL |
+| SmartModeService | ConnectivityService | FAIL |
+| ApiService | Specialized clients | WARN |
+
+### 3c. File Size Check
+Thresholds:
+| File Type | OK | WARN | FAIL |
+|-----------|-----|------|------|
+| *_screen.dart | < 800 | 800-1000 | > 1000 |
+| *_handlers.dart | < 500 | 500-700 | > 700 |
+| *_widget.dart | < 400 | 400-600 | > 600 |
+| Controller | < 400 | 400-600 | > 600 |
+
+## Output Format
+
+Return results as structured text:
+
+LAYER 1 RESULTS:
+- Format: PASS|FAIL [details]
+- Analysis (frontend): PASS|FAIL|N/A [details]
+- Analysis (backend): PASS|FAIL|N/A [details]
+- Analysis (packages): PASS|FAIL|N/A [details]
+- Build Runner: PASS|FAIL|N/A [details]
+
+LAYER 2 RESULTS:
+- Tests (frontend): PASS|FAIL|N/A [X passed, Y failed]
+- Tests (backend): PASS|FAIL|N/A [X passed, Y failed]
+- Tests (packages): PASS|FAIL|N/A [X passed, Y failed]
+- TDD Coverage: PASS|WARN|BLOCK [list of findings]
+- Cross-boundary: PASS|FAIL|N/A [details]
+
+LAYER 3 RESULTS:
+- Secrets: PASS|FAIL [details]
+- Deprecated Patterns: PASS|FAIL|WARN [list of findings]
+- File Sizes: PASS|WARN|FAIL [list of findings]
+
+OVERALL: PASS|FAIL|WARN
+BLOCKING ISSUES: [list or "none"]
+WARNINGS: [list or "none"]
 ```
 
 ## Troubleshooting

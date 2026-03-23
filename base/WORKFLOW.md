@@ -1,6 +1,6 @@
 # Claude Code Workflow
 
-**Version:** {{VERSION}} | **Stacks:** {{STACKS}}
+**Version:** 1.6.0 | **Stacks:** flutter-dart
 
 ## The Problem
 
@@ -25,8 +25,8 @@ Quick Change (config, docs, minor fix)
 
 | Agent | Purpose | Model | Read-only? |
 |-------|---------|-------|------------|
-| **code-reviewer** | Full-stack code review: auto-fix safe issues, report complex ones | opus | No |
-| **planner** | Break complex features into parallelizable tasks | opus | Yes |
+| **code-reviewer** | Full-stack code review: auto-fix safe issues, report complex ones | sonnet | No |
+| **planner** | Break complex features into parallelizable tasks | sonnet | Yes |
 | **backend-handler** | Implement backend API modules | sonnet | No |
 | **frontend-handler** | Implement frontend components and screens | sonnet | No |
 | **test-writer** | Write comprehensive tests for implemented features | sonnet | No |
@@ -99,14 +99,37 @@ Step 4: Orchestrator merges findings
 
 > Projects can exclude unused agents via `workflow.overrides.yaml` → `exclude`.
 
+### Model Tiering
+
+The project uses a tiered model strategy to optimize cost and latency while preserving quality:
+
+| Tier | Model | Purpose |
+|------|-------|---------|
+| **Tier 1** | Opus | Main context: reasoning, decisions, dialogue, user interaction |
+| **Tier 2** | Sonnet | Agents and delegated work: structured, rules-based tasks |
+| **Tier 3** | Opus | Complex domain reasoning (`syspro-debugger` only) |
+
+### Skill Delegation
+
+Three skills delegate mechanical work to Sonnet agents while keeping orchestration in the main Opus context:
+
+| Skill | Delegated to Sonnet | Kept in Opus |
+|-------|---------------------|--------------|
+| `/validate-change` | L1-L3 execution (format, tests, security) | Orchestration, verdict table, L5 escalation |
+| `/commit` | Pre-commit checks + post-commit lifecycle | Code review decision, commit message, user approval |
+| `/submit-upstream` | Preflight checks 1-7 | PR creation, post-PR |
+
+Skills inherit the session model (Opus) for inline execution. The `model:` frontmatter field was removed from skills as it had no runtime effect — only agents use the `model:` field.
+
 ### Model Routing
 
-Agents use either **opus** (judgment-heavy) or **sonnet** (execution-heavy) based on their role:
+Agents use either **opus** or **sonnet** based on their role:
 
 | Role Type | Model | Agents | Rationale |
 |-----------|-------|--------|-----------|
-| **Planning & review** | opus | planner, code-reviewer, security-reviewer | Requires nuanced judgment, architectural reasoning, risk assessment |
-| **Implementation** | sonnet | backend-handler, frontend-handler, test-writer, db-expert | Execution against clear specs; speed and cost efficiency matter |
+| **Structured review & planning** | sonnet | planner, code-reviewer | Follows templates and explicit rules (coding-conventions.md) |
+| **Implementation** | sonnet | backend-handler, frontend-handler, test-writer, db-expert, screen-refactor, package-dev | Execution against clear specs; speed and cost efficiency matter |
+| **Complex domain reasoning** | opus | syspro-debugger, security-reviewer | Requires nuanced judgment, deep domain knowledge |
 
 **Cost**: Opus is ~5x the cost of Sonnet. Default to Sonnet unless the task requires judgment that Sonnet consistently gets wrong.
 
@@ -114,11 +137,11 @@ Agents use either **opus** (judgment-heavy) or **sonnet** (execution-heavy) base
 
 ```yaml
 model_overrides:
-  code-reviewer: sonnet    # downgrade for cost-sensitive projects
+  code-reviewer: opus      # upgrade for complex codebases
   test-writer: opus        # upgrade for complex test scenarios
 ```
 
-**Fallback**: If the primary model is unavailable, agents fall back to the next available model in the same tier. No cross-tier fallback by default — a review agent should not silently downgrade to Sonnet.
+**Fallback**: If the primary model is unavailable, agents fall back to the next available model in the same tier. No cross-tier fallback by default.
 
 <!-- PROJECT: Add project-specific agents here. -->
 

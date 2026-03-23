@@ -1,4 +1,6 @@
-import json, os, sys
+import json
+import os
+import sys
 
 try:
     data = json.load(sys.stdin)
@@ -24,18 +26,28 @@ except (ValueError, ZeroDivisionError):
     sys.exit(0)
 
 if pct >= 90:
-    print(json.dumps({"additionalContext":
-        f"[Context] {pct:.0f}% used — CRITICAL. /compact now before any further work. "
-        f"Do not commit from this state."
-    }))
+    print(
+        json.dumps(
+            {
+                "additionalContext": f"[Context] {pct:.0f}% used — CRITICAL. /compact now before any further work. "
+                f"Do not commit from this state."
+            }
+        )
+    )
 elif pct >= 80:
-    print(json.dumps({"additionalContext":
-        f"[Context] {pct:.0f}% used — HIGH. /compact before running /validate-change "
-        f"or results may degrade."
-    }))
+    print(
+        json.dumps(
+            {
+                "additionalContext": f"[Context] {pct:.0f}% used — HIGH. /compact before running /validate-change "
+                f"or results may degrade."
+            }
+        )
+    )
 elif pct >= 60:
-    print(json.dumps({"additionalContext":
-        f"[Context] {pct:.0f}% used. Consider /compact before starting a new feature."
-    }))
+    print(
+        json.dumps(
+            {"additionalContext": f"[Context] {pct:.0f}% used. Consider /compact before starting a new feature."}
+        )
+    )
 
 sys.exit(0)

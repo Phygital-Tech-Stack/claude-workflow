@@ -1,11 +1,13 @@
-import json, os, sys
+import json
+import os
+import sys
 
 try:
     data = json.load(sys.stdin)
 except Exception:
     sys.exit(0)
 
-sid = data.get('session_id', 'unknown')
+sid = data.get("session_id", "unknown")
 session_file = os.path.join(".claude", f"session-files-{sid}.txt")
 if not os.path.exists(session_file):
     sys.exit(0)
@@ -22,8 +24,12 @@ exclude = (".g.dart", ".freezed.dart", ".generated.ts")
 code_files = [f for f in files if f.endswith(extensions) and not f.endswith(exclude)]
 
 if code_files:
-    print(json.dumps({
-        "additionalContext": f"[Quality] {len(code_files)} code file(s) modified this session. Run /validate-change before /commit."
-    }))
+    print(
+        json.dumps(
+            {
+                "additionalContext": f"[Quality] {len(code_files)} code file(s) modified this session. Run /validate-change before /commit."
+            }
+        )
+    )
 
 sys.exit(0)

@@ -1,4 +1,8 @@
-import json, os, glob, sys, subprocess
+import json
+import os
+import glob
+import sys
+import subprocess
 from datetime import datetime
 
 try:
@@ -22,9 +26,7 @@ if os.path.exists(session_file):
 # Check for uncommitted changes
 uncommitted = 0
 try:
-    status = subprocess.check_output(
-        ["git", "status", "--porcelain"], text=True, timeout=2
-    ).strip()
+    status = subprocess.check_output(["git", "status", "--porcelain"], text=True, timeout=2).strip()
     if status:
         uncommitted = len(status.split("\n"))
 except Exception:
@@ -54,20 +56,19 @@ if code_files:
         )
 
 if uncommitted:
-    messages.append(
-        f"[STEER] {uncommitted} uncommitted change(s). "
-        f"Consider running /commit before ending."
-    )
+    messages.append(f"[STEER] {uncommitted} uncommitted change(s). " f"Consider running /commit before ending.")
 
 # Log session metrics
 try:
     metrics_file = os.path.join(".claude", "session-metrics.log")
-    entry = json.dumps({
-        "timestamp": datetime.now().isoformat(),
-        "session_id": sid,
-        "code_files_modified": len(code_files),
-        "uncommitted_changes": uncommitted
-    })
+    entry = json.dumps(
+        {
+            "timestamp": datetime.now().isoformat(),
+            "session_id": sid,
+            "code_files_modified": len(code_files),
+            "uncommitted_changes": uncommitted,
+        }
+    )
     os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
     with open(metrics_file, "a") as f:
         f.write(entry + "\n")

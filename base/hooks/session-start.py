@@ -1,12 +1,17 @@
-import json, os, glob, subprocess, sys, time
+import json
+import os
+import glob
+import subprocess
+import sys
+import time
 
 data = json.load(sys.stdin)
 
 # Persist session_id as env var for Bash commands (used by /commit)
-session_id = data.get('session_id', '')
-env_file = os.environ.get('CLAUDE_ENV_FILE', '')
+session_id = data.get("session_id", "")
+env_file = os.environ.get("CLAUDE_ENV_FILE", "")
 if session_id and env_file:
-    with open(env_file, 'a') as f:
+    with open(env_file, "a") as f:
         f.write(f'export CLAUDE_SESSION_ID="{session_id}"\n')
 
 # Clean up stale session tracking files (older than 7 days)
@@ -72,16 +77,14 @@ if progress_files:
 
 # 3. Git context
 try:
-    branch = subprocess.check_output(
-        ["git", "branch", "--show-current"], text=True, timeout=1
-    ).strip()
+    branch = subprocess.check_output(["git", "branch", "--show-current"], text=True, timeout=1).strip()
 except Exception:
     branch = "unknown"
 
 try:
-    commits = subprocess.check_output(
-        ["git", "log", "--oneline", "-3"], text=True, timeout=1
-    ).strip().replace("\n", " | ")
+    commits = (
+        subprocess.check_output(["git", "log", "--oneline", "-3"], text=True, timeout=1).strip().replace("\n", " | ")
+    )
 except Exception:
     commits = ""
 

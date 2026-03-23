@@ -1,4 +1,6 @@
-import json, sys, re
+import json
+import sys
+import re
 
 try:
     data = json.load(sys.stdin)
@@ -15,8 +17,7 @@ warnings = []
 # Check for empty output
 if not output or len(output.strip()) < 10:
     warnings.append(
-        f"[STEER] Subagent '{agent_name}' returned empty or very short output. "
-        f"Review before proceeding."
+        f"[STEER] Subagent '{agent_name}' returned empty or very short output. " f"Review before proceeding."
     )
 
 # Check for failure patterns in output or stderr
@@ -33,8 +34,7 @@ failure_patterns = [
 for pattern in failure_patterns:
     if re.search(pattern, combined):
         warnings.append(
-            f"[STEER] Subagent '{agent_name}' output contains failure indicators. "
-            f"Verify the result is usable."
+            f"[STEER] Subagent '{agent_name}' output contains failure indicators. " f"Verify the result is usable."
         )
         break
 

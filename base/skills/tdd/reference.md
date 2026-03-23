@@ -1,13 +1,36 @@
 # TDD Skill - Deep Reference
 
-## Test Template
+## Test Templates
 
+### Python (pytest)
+
+```python
+# Arrange-Act-Assert pattern
+
+class TestFeatureName:
+    def test_should_expected_behavior_when_condition(self):
+        # Arrange
+        input_data = ...
+
+        # Act
+        result = service.do_something(input_data)
+
+        # Assert
+        assert result == expected
+
+    def test_should_raise_exception_when_error_condition(self):
+        # Arrange
+        invalid_input = ...
+
+        # Act & Assert
+        with pytest.raises(SomeException):
+            service.do_something(invalid_input)
 ```
-// Arrange-Act-Assert pattern (language-agnostic)
 
+### TypeScript (vitest)
+
+```typescript
 describe('FeatureName', () => {
-  // Setup (before each test)
-
   test('should [expected behavior] when [condition]', () => {
     // Arrange
     const input = ...;

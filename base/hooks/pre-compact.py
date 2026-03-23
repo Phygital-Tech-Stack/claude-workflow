@@ -1,4 +1,6 @@
-import json, os, sys
+import json
+import os
+import sys
 from datetime import datetime
 
 log_file = os.path.join(".claude", "compaction.log")

@@ -1,4 +1,8 @@
-import json, os, shutil, subprocess, sys
+import json
+import os
+import shutil
+import subprocess
+import sys
 
 # Consume stdin (Claude Code sends hook context via stdin)
 try:
@@ -10,9 +14,7 @@ MCP_CONFIG = ".mcp.json"
 
 # 1. Check mcp-scan is installed
 if not shutil.which("mcp-scan"):
-    print(json.dumps({
-        "additionalContext": "[SECURITY] mcp-scan is not installed. Install with: pip install mcp-scan"
-    }))
+    print(json.dumps({"additionalContext": "[SECURITY] mcp-scan is not installed. Install with: pip install mcp-scan"}))
     sys.exit(0)
 
 # 2. Check .mcp.json exists
@@ -21,10 +23,7 @@ if not os.path.isfile(MCP_CONFIG):
 
 # 3. Run mcp-scan
 try:
-    result = subprocess.run(
-        ["mcp-scan", MCP_CONFIG, "--json"],
-        capture_output=True, text=True, timeout=30
-    )
+    result = subprocess.run(["mcp-scan", MCP_CONFIG, "--json"], capture_output=True, text=True, timeout=30)
     scan_output = result.stdout
     scan_exit = result.returncode
 except Exception:
@@ -44,7 +43,11 @@ if scan_exit == 0:
 
 # 5. Findings detected — inject as advisory context
 escaped = json.dumps(scan_output)[1:-1]  # Strip surrounding quotes
-print(json.dumps({
-    "additionalContext": f"[SECURITY] MCP scan findings for .mcp.json:\n{escaped}\nReview findings before using MCP tools this session."
-}))
+print(
+    json.dumps(
+        {
+            "additionalContext": f"[SECURITY] MCP scan findings for .mcp.json:\n{escaped}\nReview findings before using MCP tools this session."
+        }
+    )
+)
 sys.exit(0)

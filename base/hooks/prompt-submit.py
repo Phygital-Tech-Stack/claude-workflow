@@ -1,4 +1,8 @@
-import json, os, glob, subprocess, sys
+import json
+import os
+import glob
+import subprocess
+import sys
 
 try:
     data = json.load(sys.stdin)
@@ -9,16 +13,12 @@ parts = []
 
 # 1. Git context (branch + last commit)
 try:
-    branch = subprocess.check_output(
-        ["git", "branch", "--show-current"], text=True, timeout=1
-    ).strip()
+    branch = subprocess.check_output(["git", "branch", "--show-current"], text=True, timeout=1).strip()
 except Exception:
     branch = ""
 
 try:
-    last_commit = subprocess.check_output(
-        ["git", "log", "--oneline", "-1"], text=True, timeout=1
-    ).strip()
+    last_commit = subprocess.check_output(["git", "log", "--oneline", "-1"], text=True, timeout=1).strip()
 except Exception:
     last_commit = ""
 

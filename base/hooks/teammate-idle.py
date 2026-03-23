@@ -1,4 +1,7 @@
-import json, os, sys, glob
+import json
+import os
+import sys
+import glob
 
 try:
     data = json.load(sys.stdin)
@@ -21,8 +24,14 @@ for f in glob.glob(os.path.join(plans_dir, "*-progress.md")):
         pass
 
 if active:
-    print(json.dumps({
-        "additionalContext": "[Idle] Active plans with remaining work: " + "; ".join(active) + ". Check TaskList for available tasks."
-    }))
+    print(
+        json.dumps(
+            {
+                "additionalContext": "[Idle] Active plans with remaining work: "
+                + "; ".join(active)
+                + ". Check TaskList for available tasks."
+            }
+        )
+    )
 
 sys.exit(0)

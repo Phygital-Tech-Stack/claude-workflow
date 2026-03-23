@@ -1,7 +1,10 @@
-import json, sys, os, re
+import json
+import sys
+import os
+import re
 
 data = json.load(sys.stdin)
-agent_name = re.sub(r'[^a-zA-Z0-9_-]', '', data.get('agent_name', ''))
+agent_name = re.sub(r"[^a-zA-Z0-9_-]", "", data.get("agent_name", ""))
 
 # Load project-specific rules
 rules = ""
@@ -31,9 +34,7 @@ if os.path.exists(memory_file):
 auto_mem = ""
 cwd = os.getcwd()
 cwd_slug = cwd.replace("/", "-").lstrip("-")
-auto_mem_path = os.path.join(
-    os.path.expanduser("~"), ".claude", "projects", cwd_slug, "memory", "MEMORY.md"
-)
+auto_mem_path = os.path.join(os.path.expanduser("~"), ".claude", "projects", cwd_slug, "memory", "MEMORY.md")
 if os.path.exists(auto_mem_path):
     try:
         with open(auto_mem_path) as f:

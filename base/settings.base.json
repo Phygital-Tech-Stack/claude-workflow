@@ -44,55 +44,55 @@
       {
         "matcher": "startup|resume",
         "hooks": [
-          { "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/session-start.py" },
-          { "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/mcp-security-scan.py" }
+          { "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/session-start.py" },
+          { "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/mcp-security-scan.py" }
         ]
       }
     ],
     "PreCompact": [
       {
         "matcher": "auto|manual",
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/pre-compact.py" }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/pre-compact.py" }]
       }
     ],
     "SubagentStart": [
       {
         "matcher": "{{AGENT_NAMES}}",
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/subagent-start.py" }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/subagent-start.py" }]
       }
     ],
     "PostToolUseFailure": [
       {
         "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/post-failure.py" }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/post-failure.py" }]
       }
     ],
     "TaskCompleted": [
       {
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/task-completed.py" }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/task-completed.py" }]
       }
     ],
     "TeammateIdle": [
       {
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/teammate-idle.py" }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/teammate-idle.py" }]
       }
     ],
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/prompt-submit.py" },
-          { "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/context-check.py" }
+          { "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/prompt-submit.py" },
+          { "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/context-check.py" }
         ]
       }
     ],
     "SubagentStop": [
       {
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/subagent-stop.py" }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/subagent-stop.py" }]
       }
     ],
     "SessionEnd": [
       {
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/session-end.py" }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/session-end.py" }]
       }
     ]
   }

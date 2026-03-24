@@ -3,7 +3,7 @@
     "PreToolUse": [
       {
         "matcher": "Write",
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/tdd-guard.sh" }]
+        "hooks": [{ "type": "command", "command": ".claude/hooks/pyrun .claude/hooks/tdd-guard.py" }]
       },
       {
         "matcher": "Bash",
@@ -33,11 +33,11 @@
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/prettier_format.sh", "timeout": 15 }]
+        "hooks": [{ "type": "command", "command": "bash .claude/hooks/prettier_format.sh", "timeout": 15 }]
       },
       {
         "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/eslint_check.sh", "timeout": 30 }]
+        "hooks": [{ "type": "command", "command": "bash .claude/hooks/eslint_check.sh", "timeout": 30 }]
       }
     ]
   }

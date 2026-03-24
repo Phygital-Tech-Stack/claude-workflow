@@ -1,9 +1,10 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 # TDD Guard — blocks new service/controller/repository files without companion test
 # Stack: csharp-dotnet
 
-exec "$(dirname "$0")/pyrun" <(cat <<'PYTHON'
-import json, sys, os
+import json
+import os
+import sys
 
 try:
     data = json.load(sys.stdin)
@@ -57,5 +58,3 @@ print(json.dumps({
     "systemMessage": f"[TDD] Writing {filename} without a companion test. Write tests first (RED phase)."
 }))
 sys.exit(0)
-PYTHON
-)

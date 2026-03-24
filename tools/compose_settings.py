@@ -215,8 +215,13 @@ def main():
                     for hook in group.get("hooks", []):
                         # Check command, prompt, and agent fields
                         cmd = hook.get("command", "") or hook.get("prompt", "") or hook.get("agent", "")
-                        # Skip hooks that reference managed scripts or guards
+                        # Skip hooks that reference managed scripts or guards.
+                        # "python3 -c" hooks are the pre-v1.6 guard format — they
+                        # must be dropped so the new pyrun equivalents are not
+                        # duplicated alongside them.
                         if ".claude/hooks/" in cmd or cmd.startswith("GUARD:"):
+                            continue
+                        if cmd.startswith("python3 -c") or cmd.startswith("python -c"):
                             continue
                         # Skip hooks that are functionally identical to a
                         # composed hook (same command text = same guard)

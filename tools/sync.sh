@@ -284,6 +284,45 @@ if r: print(r)
   done <<< "$NEW_FILES"
 fi
 
+# Remove stale .sh hook files that were replaced by .py equivalents.
+# A .sh file is considered stale when a file with the same stem (or a known
+# rename target) exists in the same directory with a .py extension and no
+# corresponding .sh source exists in the master repo.
+#
+# Known renames handled explicitly: stop-gate.sh → session-end.py
+HOOKS_DIR="$CLAUDE_DIR/hooks"
+if [[ -d "$HOOKS_DIR" ]]; then
+  echo ""
+  echo "Checking for stale .sh hook files replaced by .py equivalents..."
+  while IFS= read -r sh_file; do
+    [[ -z "$sh_file" ]] && continue
+    stem="$(basename "$sh_file" .sh)"
+    dir="$(dirname "$sh_file")"
+    py_file="$dir/$stem.py"
+
+    # Handle known stem renames (stop-gate → session-end)
+    if [[ "$stem" == "stop-gate" ]]; then
+      py_file="$dir/session-end.py"
+    fi
+
+    if [[ -f "$py_file" ]]; then
+      # Confirm the .sh has no master source (it was removed from master)
+      rel_sh="hooks/$(basename "$sh_file")"
+      has_master=$(python3 -c "
+import sys; sys.path.insert(0, '$MASTER_DIR/tools')
+from workflow_utils import find_master_source
+r = find_master_source('$MASTER_DIR', '$rel_sh', '$STACKS'.split(','))
+print('yes' if r else 'no')
+" 2>/dev/null)
+      if [[ "$has_master" == "no" ]]; then
+        echo "  Removing stale: $rel_sh (replaced by $(basename "$py_file"))"
+        rm "$sh_file"
+        UPDATED=$((UPDATED + 1))
+      fi
+    fi
+  done < <(find "$HOOKS_DIR" -maxdepth 1 -name "*.sh" -type f)
+fi
+
 # Build commands JSON for placeholder resolution
 COMMANDS_JSON=$(python3 -c "
 import sys, json; sys.path.insert(0, '$MASTER_DIR/tools')

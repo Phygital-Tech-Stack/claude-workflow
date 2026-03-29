@@ -38,6 +38,7 @@ fi
 
 CLAUDE_DIR="$PROJECT_DIR/.claude"
 mkdir -p "$CLAUDE_DIR"/{hooks,skills,agents,blueprints,agent-memory,progress,teams}
+mkdir -p "$PROJECT_DIR/docs/plans"/{1-draft,2-approved,3-in-progress,4-done,5-archive}
 
 echo "Initializing project at $PROJECT_DIR with stacks: $STACKS (master v$VERSION)"
 

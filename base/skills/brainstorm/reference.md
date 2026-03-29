@@ -75,7 +75,7 @@ After each section, use AskUserQuestion:
 After all sections are validated, save the design:
 
 ```bash
-mkdir -p docs/plans/1-draft
+mkdir -p docs/plans/{1-draft,2-approved,3-in-progress,4-done,5-archive}
 ```
 
 **File**: `docs/plans/1-draft/YYYY-MM-DD-HHmm-<topic>-design.md`
@@ -185,23 +185,38 @@ See `docs/plans/LIFECYCLE.md` for the full stage system.
 
 **Path A: Implement now → Enter Plan Mode**
 
-1. Move design + progress files from `docs/plans/1-draft/` to `docs/plans/3-in-progress/`
-2. Update progress file: set `**Status**:` to `IN PROGRESS`, update `**Design**:` path
-3. Confirm readiness
-4. Enter Claude Code's native plan mode (EnterPlanMode) with the design doc as context
-5. Do NOT re-explore approaches or re-validate the design
+**YOU MUST execute these steps before entering plan mode:**
+
+1. Run: `mkdir -p docs/plans/{1-draft,2-approved,3-in-progress,4-done,5-archive}`
+2. Run: `git mv docs/plans/1-draft/<design-file> docs/plans/3-in-progress/`
+3. Run: `git mv docs/plans/1-draft/<progress-file> docs/plans/3-in-progress/`
+4. Update progress file: set `**Status**:` to `IN PROGRESS`, update `**Design**:` path to `docs/plans/3-in-progress/...`
+5. Run: `git add docs/plans/3-in-progress/ && git commit -m "chore: move plan to 3-in-progress"`
+6. Enter Claude Code's native plan mode (EnterPlanMode) with the design doc as context
+7. Do NOT re-explore approaches or re-validate the design
+
+**STOP**: If the files are still in `1-draft/` after this phase, you have not completed Phase 6.
 
 **Path B: Park for later**
 
-1. Move design + progress files from `docs/plans/1-draft/` to `docs/plans/2-approved/`
-2. Update progress file: set `**Status**:` to `APPROVED`, update `**Design**:` path
-3. Inform user: "Design parked in `docs/plans/2-approved/`. Start a new session and enter Plan Mode to begin."
+**YOU MUST execute these steps before ending the session:**
+
+1. Run: `mkdir -p docs/plans/{1-draft,2-approved,3-in-progress,4-done,5-archive}`
+2. Run: `git mv docs/plans/1-draft/<design-file> docs/plans/2-approved/`
+3. Run: `git mv docs/plans/1-draft/<progress-file> docs/plans/2-approved/`
+4. Update progress file: set `**Status**:` to `APPROVED`, update `**Design**:` path to `docs/plans/2-approved/...`
+5. Run: `git add docs/plans/2-approved/ && git commit -m "chore: move plan to 2-approved"`
+6. Inform user: "Design parked in `docs/plans/2-approved/`. Start a new session and enter Plan Mode to begin."
+
+**STOP**: If the files are still in `1-draft/` after this phase, you have not completed Phase 6.
 
 **Resuming a parked plan**
 
 When entering Plan Mode with a design doc from `docs/plans/2-approved/`:
-1. Move design + progress files from `docs/plans/2-approved/` to `docs/plans/3-in-progress/`
-2. Update progress file: set `**Status**:` to `IN PROGRESS`, update `**Design**:` path
+1. Run: `git mv docs/plans/2-approved/<design-file> docs/plans/3-in-progress/`
+2. Run: `git mv docs/plans/2-approved/<progress-file> docs/plans/3-in-progress/`
+3. Update progress file: set `**Status**:` to `IN PROGRESS`, update `**Design**:` path to `docs/plans/3-in-progress/...`
+4. Run: `git add docs/plans/3-in-progress/ && git commit -m "chore: move plan to 3-in-progress"`
 
 ## Relationship with Plan Mode
 

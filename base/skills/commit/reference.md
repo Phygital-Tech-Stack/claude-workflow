@@ -5,7 +5,13 @@
 After a successful commit, perform these in order:
 
 1. **Update progress file** — If `docs/plans/3-in-progress/*-progress.md` exists, move completed items and update "Next Session Should"
-2. **Archive completed plans** — If all steps checked off, move design + progress to `docs/plans/4-done/`
+2. **Archive completed plans** — If all steps in a progress file are checked off (`- [x]`), run:
+   ```bash
+   git mv docs/plans/3-in-progress/<design-file> docs/plans/4-done/
+   git mv docs/plans/3-in-progress/<progress-file> docs/plans/4-done/
+   git add docs/plans/4-done/ && git commit -m "chore: archive completed plan to 4-done"
+   ```
+   **SKIP ONLY IF**: No progress files exist in `docs/plans/3-in-progress/`, or steps remain unchecked.
 3. **Write session progress** — Save to `.claude/progress/<TIMESTAMP>-<SESSION_ID>.md`
 4. **Append decisions** — If architectural decisions were made, append to `.claude/decisions.log`
 5. **Clean up tracking file** — Remove committed paths from `.claude/session-files-<session_id>.txt`

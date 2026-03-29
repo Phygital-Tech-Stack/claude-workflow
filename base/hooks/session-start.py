@@ -49,6 +49,14 @@ for f in sorted(glob.glob(os.path.join(plans_dir, "*-progress.md"))):
     except Exception:
         continue
 
+# 1b. Warn about plans stuck in 1-draft/ (should have been moved by /brainstorm Phase 6)
+drafts_dir = "docs/plans/1-draft"
+stuck = [os.path.basename(f).replace("-design.md", "")
+         for f in sorted(glob.glob(os.path.join(drafts_dir, "*-design.md")))]
+if stuck:
+    parts.append(f"[LIFECYCLE] Plans stuck in 1-draft/: {', '.join(stuck)}. "
+                 "Move to 2-approved/ (park) or 3-in-progress/ (implement).")
+
 # 2. Check .claude/progress/ for most recent session progress
 progress_dir = os.path.join(claude_dir, "progress")
 progress_files = sorted(glob.glob(os.path.join(progress_dir, "*.md")))

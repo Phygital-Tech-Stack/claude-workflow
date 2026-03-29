@@ -1,0 +1,1 @@
+- [Hook paths must be absolute](feedback_hook_paths.md) — relative .claude/hooks/ paths break when CWD changes; use git rev-parse

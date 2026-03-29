@@ -4,6 +4,7 @@ description: Use when implementing features or fixing bugs test-first. Enforces 
 user-invocable: true
 argument-hint: <feature description>
 allowed-tools: Read, Grep, Glob, Bash, Write, Edit
+model: sonnet
 ---
 
 # /tdd - Test-Driven Development Workflow (Full Ceremony)
@@ -34,11 +35,16 @@ Before writing any implementation code, design test cases covering:
 
 ### Phase 3: Write Failing Tests (RED)
 
-**Test file convention:** {{TEST_FILE_CONVENTION}}
+**Test file conventions:**
+- Backend: `tests/<path>/test_<name>.py`
+- Frontend: `src/**/<Component>.test.tsx` or `src/**/use<Hook>.test.ts`
 
 Run tests to confirm they fail:
 ```bash
-{{TEST_COMMAND}}
+# Backend
+pytest
+# Frontend
+npm test
 ```
 
 See `reference.md` for test template and Arrange/Act/Assert pattern.
@@ -48,7 +54,7 @@ See `reference.md` for test template and Arrange/Act/Assert pattern.
 Write the minimum code to make tests pass. No gold-plating, no premature optimization, no extra features.
 
 ```bash
-{{TEST_COMMAND}}
+pytest
 ```
 
 ### Phase 5: Refactor (REFACTOR)
@@ -62,9 +68,9 @@ Return to Phase 3 for the next test case until all acceptance criteria are met.
 ### Phase 7: Final Verification
 
 ```bash
-{{TEST_COMMAND}}
-{{ANALYZE_COMMAND}}
-{{FORMAT_COMMAND}}
+pytest
+ruff check && mypy
+ruff format
 ```
 
 ## TDD Checklist

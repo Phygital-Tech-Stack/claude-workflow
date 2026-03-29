@@ -8,8 +8,14 @@ argument-hint: [--check | --update | --version <version>]
 
 # /sync-workflow
 
-**PURPOSE**: Keep project workflow files in sync with the master
-claude-workflow repository.
+**PURPOSE**: Keep project workflow files in sync with the master claude-workflow repository.
+
+## When This Skill Activates
+
+- Workflow files may be outdated after upstream changes
+- After upgrading the pinned workflow version
+- User suspects drift between project and master workflow repo
+- When NOT to use: For guardrail drift (use `/ai-guardrails-audit`); for skill quality (use `/writing-skills audit`)
 
 ## Modes
 
@@ -17,7 +23,7 @@ claude-workflow repository.
 |------|-------------|
 | `--check` (default) | Run drift detection, report status |
 | `--update` | Pull updates from master for BEHIND files |
-| `--version <ver>` | Pin a specific version instead of auto-discovering latest |
+| `--version <ver>` | Update pinned version in overrides, then sync |
 
 ## Steps
 
@@ -26,23 +32,35 @@ claude-workflow repository.
 Read `.claude/workflow.lock` for pinned version and managed files.
 Read `.claude/workflow.overrides.yaml` for stacks and excludes.
 
-### 2. Discover Latest Version & Fetch Master
+### 2. Fetch Master
 
-Discover latest version from remote, compare with pinned version, clone at latest. See `reference.md` for full bash/python commands.
+Clone/fetch the master repo at the pinned version:
 
-If `LATEST` is newer than `PINNED`, report: **Upgrade available**: pinned v{PINNED}, latest v{LATEST}.
+```bash
+MASTER_REPO="https://github.com/Phygital-Tech-Stack/claude-workflow.git"
+VERSION=$(python3 -c "import json; print(json.load(open('.claude/workflow.lock'))['version'])")
+git clone --depth 1 --branch "v$VERSION" "$MASTER_REPO" /tmp/claude-workflow-master
+```
 
 ### 3. Run Drift Check
 
-Run `diff.sh` from cloned master against the project. Report results table. See `reference.md` for command.
+```bash
+/tmp/claude-workflow-master/tools/diff.sh --project . --master /tmp/claude-workflow-master
+```
+
+Report the results table to the user.
 
 ### 4. Sync (if --update)
 
-Run `sync.sh` from cloned master. See `reference.md` for command.
+```bash
+/tmp/claude-workflow-master/tools/sync.sh --project . --master /tmp/claude-workflow-master
+```
 
 ### 5. Clean Up
 
-Remove `/tmp/claude-workflow-master`. See `reference.md`.
+```bash
+rm -rf /tmp/claude-workflow-master
+```
 
 ### 6. Commit Changes
 
@@ -53,6 +71,7 @@ If files were updated, suggest running `/commit` with a `chore:` type.
 - **See also**: `/ai-guardrails-audit` for detecting drift this skill fixes
 - **See also**: `/commit` for committing sync changes with `chore:` type
 - **See also**: `/writing-skills audit` if synced skills need quality check
+- **See also**: `/version` for bumping the pinned workflow version before syncing
 
 ## Pressure Tested
 
@@ -60,4 +79,4 @@ If files were updated, suggest running `/commit` with a `chore:` type.
 |----------|--------------|---------------|
 | "Just copy the files manually, it's faster" | time pressure | Steps 2-3 run drift detection and diff — manual copy skips version pinning and misses conflicts |
 | "Skip the cleanup step, /tmp is fine" | exhaustion | Step 5 cleanup is explicit — stale clones cause version confusion on next sync |
-| "The pinned version doesn't exist in remote" | error handling | Auto-discovery fetches the latest tag from remote; falls back to pinned version if `git ls-remote` fails |
+| "The pinned version doesn't exist in remote" | error handling | Clone command will fail visibly; user must fix version in `.claude/workflow.lock` before retrying |

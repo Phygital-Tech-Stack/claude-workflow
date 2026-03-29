@@ -4,7 +4,6 @@ description: Use when unsure how to approach a feature, or when you want to eval
 user-invocable: true
 argument-hint: <idea or feature description>
 allowed-tools: Read, Grep, Glob, Bash, AskUserQuestion, EnterPlanMode
-model: opus
 ---
 
 # Brainstorm Skill

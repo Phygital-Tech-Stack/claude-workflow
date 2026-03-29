@@ -65,6 +65,7 @@ Overall: **PASS** (all clear) / **WARN** (minor drift) / **STALE** (significant 
 - **Recommended before**: `/commit` (run to detect documentation drift)
 - **See also**: `/validate-change` (multi-layer verification pipeline)
 - **See also**: `/writing-skills audit` (quality audit for individual skills)
+- **See also**: `/score-guardrails` for scoring overall guardrail maturity after an audit
 
 ## Pressure Tested
 

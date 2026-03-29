@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Full-stack code review — auto-fix safe issues, report complex ones.
-model: opus # judgment-heavy: nuanced code quality assessment, convention enforcement
+model: sonnet # follows coding-conventions.md rules; structured checklist review
 allowed-tools: Read, Grep, Glob, Bash, Edit
 ---
 

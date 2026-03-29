@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Break complex features into parallelizable tasks with clear dependencies.
-model: opus # judgment-heavy: architectural reasoning, task decomposition
+model: sonnet # structured planning follows templates from design docs
 allowed-tools: Read, Grep, Glob
 ---
 

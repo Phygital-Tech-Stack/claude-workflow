@@ -61,6 +61,7 @@ Use the EXACT format from `reference.md` — score sheet with 1-line evidence pe
 - **See also**: `/brainstorm` for designing guardrails to close gaps
 - **See also**: `/ai-guardrails-audit` for checking existing guardrails for drift
 - **See also**: `/validate-change` for the validation pipeline this rubric measures
+- **See also**: `/writing-skills` for improving individual skill quality to raise the score
 
 ## Pressure Tested
 

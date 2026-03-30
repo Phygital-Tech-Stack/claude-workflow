@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.3] - 2026-03-30
+
+### Fixed
+- Plan lifecycle: enforce explicit command transitions and show session-start warning instead of silently failing
+
 ## [1.4.4] - 2026-03-10
 
 ### Added

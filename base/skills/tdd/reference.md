@@ -2,31 +2,34 @@
 
 ## Test Template
 
-```
-// Arrange-Act-Assert pattern (language-agnostic)
+```csharp
+// Arrange-Act-Assert pattern (xUnit)
 
-describe('FeatureName', () => {
-  // Setup (before each test)
+public class FeatureNameTests
+{
+    [Fact]
+    public void Should_ExpectedBehavior_When_Condition()
+    {
+        // Arrange
+        var input = ...;
 
-  test('should [expected behavior] when [condition]', () => {
-    // Arrange
-    const input = ...;
+        // Act
+        var result = service.DoSomething(input);
 
-    // Act
-    const result = service.doSomething(input);
+        // Assert
+        Assert.Equal(expected, result);
+    }
 
-    // Assert
-    expect(result).toEqual(expected);
-  });
+    [Fact]
+    public void Should_ThrowException_When_ErrorCondition()
+    {
+        // Arrange
+        var invalidInput = ...;
 
-  test('should throw [exception] when [error condition]', () => {
-    // Arrange
-    const invalidInput = ...;
-
-    // Act & Assert
-    expect(() => service.doSomething(invalidInput)).toThrow(SomeException);
-  });
-});
+        // Act & Assert
+        Assert.Throws<SomeException>(() => service.DoSomething(invalidInput));
+    }
+}
 ```
 
 ## Arrange/Act/Assert Pattern

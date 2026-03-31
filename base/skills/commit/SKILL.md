@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Use when committing code changes after a work session.
+description: Use when committing code changes after a work session. Triggers on 'commit', after implementation work, or when `/validate-change` passes.
 user-invocable: true
 argument-hint: [--all | --amend]
 allowed-tools: Bash, Read, Grep, Glob, Edit, Task
@@ -51,8 +51,8 @@ Use `code-reviewer` subagent. Skip if `/validate-change` already ran this sessio
 ### 4. Format and Analyze
 
 ```bash
-{{FORMAT_COMMAND}}
-{{ANALYZE_COMMAND}}
+dotnet format
+dotnet build --no-restore
 ```
 
 ### 5. Stage and Commit

@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.6.4] - 2026-04-01
+
+### Fixed
+- Hook commands now use absolute paths via `$(git rev-parse --show-toplevel)` for both pyrun and script arguments, preventing CWD-dependent failures in monorepos
+
 ## [1.6.3] - 2026-03-30
 
 ### Fixed

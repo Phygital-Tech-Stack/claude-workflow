@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nskip = ['node_modules', '.claude/', 'test/', '.md']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\nviolations = []\nqf = re.search(r'//\\s*(hack|workaround|band-?aid|quick\\s*fix|temp(orary)?\\s*fix|hotfix)\\b', content, re.IGNORECASE)\nif qf:\n    violations.append(qf.group(0).strip())\ntd = re.search(r'//\\s*(TODO|FIXME):\\s*(fix later|investigate later|come back|revisit|temporary)\\b', content, re.IGNORECASE)\nif td:\n    violations.append(td.group(0).strip())\nif violations:\n    print(json.dumps({'systemMessage': '[STEER] Detected ' + violations[0] + '. Quick-fix markers suggest a workaround rather than a root-cause fix. Consider addressing the underlying issue.'}))\n    sys.exit(0)\nsys.exit(0)\n\""
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun -c \"\nimport json, sys, re\nd = json.load(sys.stdin)\nti = d.get('tool_input', {})\np = ti.get('file_path', '')\nskip = ['node_modules', '.claude/', 'test/', '.md']\nif any(s in p for s in skip):\n    sys.exit(0)\ncontent = ti.get('content', '') or ti.get('new_string', '')\nif not content:\n    sys.exit(0)\nviolations = []\nqf = re.search(r'(?://|#)\\s*(hack|workaround|band-?aid|quick\\s*fix|temp(orary)?\\s*fix|hotfix)\\b', content, re.IGNORECASE)\nif qf:\n    violations.append(qf.group(0).strip())\ntd = re.search(r'(?://|#)\\s*(TODO|FIXME):\\s*(fix later|investigate later|come back|revisit|temporary)\\b', content, re.IGNORECASE)\nif td:\n    violations.append(td.group(0).strip())\nif violations:\n    print(json.dumps({'systemMessage': '[STEER] Detected ' + violations[0] + '. Quick-fix markers suggest a workaround rather than a root-cause fix. Consider addressing the underlying issue.'}))\n    sys.exit(0)\nsys.exit(0)\n\""
           }
         ]
       },
@@ -33,7 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\ncritical = '{{CRITICAL_FILES}}'.split(',')\ncritical = [c.strip() for c in critical if c.strip()]\nif any(c in p for c in critical):\n    print(json.dumps({'systemMessage': '[GUARD] Critical infrastructure file (schema/routes/config). Run /validate-change after editing.'}))\nsys.exit(0)\n\""
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun -c \"\nimport json, sys\nd = json.load(sys.stdin)\np = d.get('tool_input', {}).get('file_path', '')\ncritical = 'base/settings.base.json, base/guards/, tools/init.sh, tools/sync.sh, tools/drift_check.py, tools/generate_lock.py, version.json, projects.json'.split(',')\ncritical = [c.strip() for c in critical if c.strip()]\nif any(c in p for c in critical):\n    print(json.dumps({'systemMessage': '[GUARD] Critical infrastructure file (schema/routes/config). Run /validate-change after editing.'}))\nsys.exit(0)\n\""
           }
         ]
       },
@@ -91,11 +91,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/session-start.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/session-start.py"
           },
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/mcp-security-scan.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/mcp-security-scan.py"
           }
         ]
       }
@@ -106,7 +106,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/pre-compact.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/pre-compact.py"
           }
         ]
       }
@@ -117,7 +117,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/subagent-start.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/subagent-start.py"
           }
         ]
       }
@@ -128,7 +128,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/post-failure.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/post-failure.py"
           }
         ]
       }
@@ -138,7 +138,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/task-completed.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/task-completed.py"
           }
         ]
       }
@@ -148,7 +148,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/teammate-idle.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/teammate-idle.py"
           }
         ]
       }
@@ -158,11 +158,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/prompt-submit.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/prompt-submit.py"
           },
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/context-check.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/context-check.py"
           }
         ]
       }
@@ -172,7 +172,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/subagent-stop.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/subagent-stop.py"
           }
         ]
       }
@@ -182,7 +182,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/pyrun .claude/hooks/session-end.py"
+            "command": "$(git rev-parse --show-toplevel)/.claude/hooks/pyrun $(git rev-parse --show-toplevel)/.claude/hooks/session-end.py"
           }
         ]
       }

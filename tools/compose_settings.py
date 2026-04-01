@@ -141,6 +141,37 @@ def resolve_placeholders(obj, placeholders: dict[str, str]):
     return obj
 
 
+def absolutify_hook_paths(settings: dict) -> dict:
+    """Rewrite relative .claude/hooks/ paths to absolute paths using git rev-parse.
+
+    Hook commands may run with a CWD that is not the project root (e.g. inside
+    a subpackage in a monorepo), so relative paths like .claude/hooks/pyrun
+    will fail.  Replace every occurrence of '.claude/hooks/' in command strings
+    with '$(git rev-parse --show-toplevel)/.claude/hooks/' to make them
+    CWD-independent.
+    """
+    import re
+
+    ROOT = "$(git rev-parse --show-toplevel)"
+
+    def _rewrite(cmd: str) -> str:
+        # Replace every bare .claude/hooks/ that is NOT already preceded by
+        # --show-toplevel)/ (i.e. not already absolute).
+        return re.sub(
+            r'(?<!\$\(git rev-parse --show-toplevel\)/)\.claude/hooks/',
+            f'{ROOT}/.claude/hooks/',
+            cmd,
+        )
+
+    result = copy.deepcopy(settings)
+    for event_key, event_groups in result.get("hooks", {}).items():
+        for group in event_groups:
+            for hook in group.get("hooks", []):
+                if "command" in hook and ".claude/hooks/" in hook["command"]:
+                    hook["command"] = _rewrite(hook["command"])
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compose settings.json from base + guards + stack overlays")
     parser.add_argument("--base", required=True, help="Path to settings.base.json")
@@ -262,6 +293,9 @@ def main():
 
     # Dedup hooks — prevents accumulation from repeated syncs with --preserve-from
     settings = dedup_hooks(settings)
+
+    # Absolutify .claude/hooks/ paths so hooks work regardless of CWD
+    settings = absolutify_hook_paths(settings)
 
     # Write output
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
